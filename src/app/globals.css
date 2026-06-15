@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -34,8 +34,8 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
 
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'IBM Plex Sans Thai', 'Prompt', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Prompt', var(--font-sans), serif;
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 4px);

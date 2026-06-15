@@ -162,7 +162,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
   // Delete Session
   const handleDeleteSession = async (sessionId: string) => {
     if (!student) return;
-    const confirmDelete = window.confirm('Are you sure you want to delete this session check-in? This will also decrement the student\'s completed lessons.');
+    const confirmDelete = window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบประวัติคลาสเรียนครั้งนี้? การลบนี้จะลดจำนวนครั้งที่เรียนเสร็จสะสมของนักเรียนลง 1 ครั้งด้วยอัตโนมัติ');
     if (!confirmDelete) return;
 
     try {
@@ -177,7 +177,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-xs text-muted-foreground">Retrieving student records...</p>
+        <p className="text-xs text-muted-foreground">กำลังดึงข้อมูลนักเรียน...</p>
       </div>
     );
   }
@@ -194,32 +194,32 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       <div className="flex justify-between items-center">
         <Link 
           href="/students" 
-          className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-semibold py-1 px-2.5 bg-white border border-[#border] rounded-xl shadow-xs"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-semibold py-1 px-2.5 bg-white border border-[#eae7df] rounded-xl shadow-xs"
         >
-          <ArrowLeft className="w-4 h-4" /> Directory
+          <ArrowLeft className="w-4 h-4" /> ย้อนกลับ
         </Link>
         <button
           onClick={() => setShowEditModal(true)}
-          className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs font-semibold py-1 px-2.5 bg-white border border-[#border] rounded-xl shadow-xs"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs font-semibold py-1 px-2.5 bg-white border border-[#eae7df] rounded-xl shadow-xs"
         >
-          <Edit className="w-3.5 h-3.5" /> Edit Profile
+          <Edit className="w-3.5 h-3.5" /> แก้ไขโปรไฟล์
         </button>
       </div>
 
       {/* Student Profile Card */}
-      <div className="bg-white border border-[#border] rounded-2xl p-5 space-y-4 shadow-sm">
+      <div className="bg-white border border-[#eae7df] rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-foreground font-serif flex items-center gap-2">
               {student.name}
               {student.nickname && (
-                <span className="text-sm font-medium text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg">
+                <span className="text-sm font-medium text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg font-sans">
                   {student.nickname}
                 </span>
               )}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Member since {new Date(student.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+              ลงทะเบียนเมื่อ {new Date(student.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
@@ -227,15 +227,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               ? 'bg-secondary/15 text-secondary' 
               : 'bg-primary/15 text-primary'
           }`}>
-            {student.status === 'active' ? 'Active Package' : 'Package Inactive'}
+            {student.status === 'active' ? 'กำลังเรียนอยู่' : 'พักคอร์ส/จบคอร์ส'}
           </span>
         </div>
 
         {/* Notes if present */}
         {student.notes && (
-          <div className="bg-muted/40 p-3 rounded-xl border border-[#border]/50 flex items-start gap-2.5">
+          <div className="bg-muted/40 p-3 rounded-xl border border-[#eae7df]/50 flex items-start gap-2.5">
             <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="text-xs text-muted-foreground leading-relaxed">{student.notes}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{student.notes}</p>
           </div>
         )}
 
@@ -248,7 +248,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               rel="noreferrer"
               className="bg-[#06C755]/10 text-[#06C755] py-2 px-3 rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 font-bold text-xs"
             >
-              <MessageSquare className="w-4 h-4 fill-current" /> Line Chat
+              <MessageSquare className="w-4 h-4 fill-current" /> ทัก Line ผู้ปกครอง
             </a>
           )}
           {student.facebook_username && (
@@ -258,13 +258,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               rel="noreferrer"
               className="bg-[#0084FF]/10 text-[#0084FF] py-2 px-3 rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 font-bold text-xs"
             >
-              <MessageSquare className="w-4 h-4" /> Messenger
+              <MessageSquare className="w-4 h-4" /> ทัก Messenger
             </a>
           )}
           {student.parent_phone && (
             <a
               href={`tel:${student.parent_phone}`}
               className="bg-secondary/10 text-secondary p-2 rounded-xl hover:scale-105 active:scale-95 transition-all"
+              title="โทรออก"
             >
               <Phone className="w-4 h-4" />
             </a>
@@ -273,11 +274,11 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Progress & Check-in Card */}
-      <div className="bg-white border border-[#border] rounded-2xl p-5 space-y-4 shadow-sm">
+      <div className="bg-white border border-[#eae7df] rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex justify-between items-center text-xs font-bold text-muted-foreground">
-          <span>Lessons Completed</span>
-          <span className="text-foreground">
-            {student.completed_lessons} / {student.total_lessons} Lessons ({completionRate}%)
+          <span>ความก้าวหน้าคอร์สเรียน</span>
+          <span className="text-foreground font-sans">
+            {student.completed_lessons} / {student.total_lessons} ครั้ง ({completionRate}%)
           </span>
         </div>
 
@@ -293,10 +294,10 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
 
         {/* Bottom statistics detail */}
         <div className="flex justify-between text-xs text-muted-foreground font-medium pt-1">
-          <span>Remaining: {Math.max(0, student.total_lessons - student.completed_lessons)} lessons</span>
+          <span>คงเหลือ: {Math.max(0, student.total_lessons - student.completed_lessons)} ครั้ง</span>
           {completionRate >= 100 && (
             <span className="text-secondary font-bold flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" /> Package Completed!
+              <Sparkles className="w-3.5 h-3.5" /> นักเรียนจบคอร์สนี้แล้ว!
             </span>
           )}
         </div>
@@ -306,22 +307,22 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
           onClick={() => setShowCheckInModal(true)}
           className="w-full bg-primary hover:bg-primary/95 text-white py-3.5 rounded-2xl font-semibold text-sm shadow-md shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 mt-2"
         >
-          <Camera className="w-4.5 h-4.5" /> Check-in Today&apos;s Lesson
+          <Camera className="w-4.5 h-4.5" /> เช็คอินชั่วโมงเรียนวันนี้
         </button>
       </div>
 
       {/* Timeline Section */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold tracking-wide uppercase text-muted-foreground/80 flex items-center gap-1.5">
+        <h3 className="text-xs font-bold tracking-wide uppercase text-muted-foreground/80 flex items-center gap-1.5">
           <Calendar className="w-4.5 h-4.5" />
-          Artwork Timeline ({sessions.length})
+          บันทึกและประวัติผลงานวาดเขียน ({sessions.length})
         </h3>
 
         {sessions.length === 0 ? (
-          <div className="border-2 border-dashed border-[#border] rounded-2xl py-12 px-4 text-center">
-            <p className="text-sm font-semibold text-foreground">No sessions logged</p>
+          <div className="border-2 border-dashed border-[#eae7df] rounded-2xl py-12 px-4 text-center">
+            <p className="text-sm font-semibold text-foreground">ยังไม่มีประวัติการเช็คอินคลาสเรียน</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Tap the button above to log their very first lesson drawing.
+              แตะปุ่มเช็คอินด้านบนเพื่ออัปโหลดชิ้นงานคลาสเรียนคลาสแรกของเด็ก
             </p>
           </div>
         ) : (
@@ -331,14 +332,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                 {/* Timeline Circle Bullet */}
                 <span className="absolute -left-[30px] top-1.5 w-3 h-3 rounded-full bg-primary border-4 border-[#fbfaf7] shadow-sm" />
 
-                <div className="bg-white border border-[#border] rounded-2xl overflow-hidden shadow-xs hover:shadow-sm transition-all duration-200">
+                <div className="bg-white border border-[#eae7df] rounded-2xl overflow-hidden shadow-xs hover:shadow-sm transition-all duration-200">
                   {/* Image Frame */}
                   {session.artwork_url && (
-                    <div className="relative w-full aspect-video bg-muted border-b border-[#border] overflow-hidden">
+                    <div className="relative w-full aspect-video bg-muted border-b border-[#eae7df] overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={session.artwork_url}
-                        alt="Drawing Log"
+                        alt="รูปภาพผลงานวาดเขียน"
                         className="object-cover w-full h-full"
                         loading="lazy"
                       />
@@ -359,13 +360,13 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                       <button
                         onClick={() => handleDeleteSession(session.id)}
                         className="text-muted-foreground hover:text-primary p-1.5 rounded-lg hover:bg-muted/60 transition-all"
-                        title="Delete session record"
+                        title="ลบเช็คอินนี้"
                       >
                         <Trash2 className="w-4 h-4 text-muted-foreground/60 hover:text-primary" />
                       </button>
                     </div>
                     {session.notes && (
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
                         {session.notes}
                       </p>
                     )}
@@ -384,11 +385,11 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
             onClick={() => setShowCheckInModal(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
           />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#border] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
-            <div className="flex justify-between items-center mb-5 border-b border-[#border] pb-3">
+          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#eae7df] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
+            <div className="flex justify-between items-center mb-5 border-b border-[#eae7df] pb-3">
               <div>
-                <h2 className="text-lg font-bold font-serif text-foreground">Lesson Check-In</h2>
-                <p className="text-xs text-muted-foreground">Log today&apos;s progress & snap drawing photo</p>
+                <h2 className="text-lg font-bold font-serif text-foreground">เช็คอินคลาสเรียนศิลปะ</h2>
+                <p className="text-xs text-muted-foreground">บันทึกพัฒนาการของเด็กและถ่ายรูปผลงานวันนี้</p>
               </div>
               <button 
                 onClick={() => {
@@ -405,22 +406,22 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
             <form onSubmit={handleCheckInSubmit} className="space-y-4">
               {/* Date */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Attendance Date</label>
+                <label className="text-xs font-bold text-muted-foreground">วันที่เข้าเรียน</label>
                 <input
                   type="date"
                   required
                   value={checkInDate}
                   onChange={(e) => setCheckInDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               {/* Drawing Photo Uploader */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Snap Drawing / Photo</label>
+                <label className="text-xs font-bold text-muted-foreground">อัปโหลดผลงานศิลปะวันนี้</label>
                 
                 {previewImage ? (
-                  <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-[#border] group">
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-[#eae7df] group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={previewImage} alt="Preview Upload" className="object-cover w-full h-full" />
                     <button
@@ -438,11 +439,11 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-[#border] hover:border-primary/50 py-8 rounded-xl flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all text-muted-foreground hover:text-primary"
+                    className="w-full border-2 border-dashed border-[#eae7df] hover:border-primary/50 py-8 rounded-xl flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all text-muted-foreground hover:text-primary"
                   >
                     <Camera className="w-8 h-8 mb-2" />
-                    <span className="text-xs font-bold">Upload/Snap Artwork Image</span>
-                    <span className="text-[10px] text-muted-foreground/75 mt-0.5">Accesses camera on mobile</span>
+                    <span className="text-xs font-bold">ถ่ายภาพผลงานเด็ก หรืออัปโหลดรูป</span>
+                    <span className="text-[10px] text-muted-foreground/75 mt-0.5">ระบบจะเปิดกล้องโทรศัพท์อัตโนมัติบนมือถือ</span>
                   </button>
                 )}
                 
@@ -458,14 +459,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
 
               {/* Progress Notes */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Lesson Progress Notes</label>
+                <label className="text-xs font-bold text-muted-foreground">บันทึกพัฒนาการ / กิจกรรมคลาสเรียน</label>
                 <textarea
                   required
                   rows={3}
-                  placeholder="What drawing techniques were practiced? e.g. Watercolor color blending, sky sketches..."
+                  placeholder="น้องได้ฝึกลงเทคนิคสีอะไร วาดอะไรเพิ่มเติม มีความก้าวหน้าส่วนใดบ้าง..."
                   value={checkInNotes}
                   onChange={(e) => setCheckInNotes(e.target.value)}
-                  className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
 
@@ -478,11 +479,11 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                 {uploading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Uploading Artwork & Checking In...</span>
+                    <span>กำลังอัปโหลดรูปและดำเนินการเช็คอิน...</span>
                   </>
                 ) : (
                   <>
-                    <Check className="w-4.5 h-4.5" /> Confirm Check-In Lesson
+                    <Check className="w-4.5 h-4.5" /> ยืนยันการเข้าเรียน (เช็คอิน)
                   </>
                 )}
               </button>
@@ -498,11 +499,11 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
             onClick={() => setShowEditModal(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
           />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#border] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
-            <div className="flex justify-between items-center mb-5 border-b border-[#border] pb-3">
+          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#eae7df] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
+            <div className="flex justify-between items-center mb-5 border-b border-[#eae7df] pb-3">
               <div>
-                <h2 className="text-lg font-bold font-serif text-foreground">Edit Student Record</h2>
-                <p className="text-xs text-muted-foreground">Modify lessons packages & contact details</p>
+                <h2 className="text-lg font-bold font-serif text-foreground">แก้ไขข้อมูลประวัตินักเรียน</h2>
+                <p className="text-xs text-muted-foreground">แก้ไขเบอร์ติดต่อผู้ปกครองและจำนวนชั่วโมงเรียน</p>
               </div>
               <button 
                 onClick={() => setShowEditModal(false)}
@@ -515,36 +516,36 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
             <form onSubmit={handleEditSubmit} className="space-y-4">
               {/* Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Student Name</label>
+                <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                  className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                 />
               </div>
 
               {/* Nickname & Status */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Nickname</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
                   <input
                     type="text"
                     value={editNickname}
                     onChange={(e) => setEditNickname(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Status</label>
+                  <label className="text-xs font-bold text-muted-foreground">สถานะแพ็กเกจ</label>
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as 'active' | 'inactive')}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive / Complete</option>
+                    <option value="active">กำลังเรียนอยู่</option>
+                    <option value="inactive">พักคอร์ส/จบคอร์ส</option>
                   </select>
                 </div>
               </div>
@@ -552,24 +553,24 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               {/* Completed / Total Lessons */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Completed Lessons</label>
+                  <label className="text-xs font-bold text-muted-foreground">คลาสที่เรียนเสร็จแล้ว (ครั้ง)</label>
                   <input
                     type="number"
                     min="0"
                     max={editTotalLessons}
                     value={editCompletedLessons}
                     onChange={(e) => setEditCompletedLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Total Lessons Package</label>
+                  <label className="text-xs font-bold text-muted-foreground">จำนวนคลาสเรียนทั้งหมดในแพ็กเกจ (ครั้ง)</label>
                   <input
                     type="number"
                     min="1"
                     value={editTotalLessons}
                     onChange={(e) => setEditTotalLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   />
                 </div>
               </div>
@@ -577,36 +578,36 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               {/* Parent Phone & Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Parent Name</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
                   <input
                     type="text"
                     value={editParentName}
                     onChange={(e) => setEditParentName(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Parent Phone</label>
+                  <label className="text-xs font-bold text-muted-foreground">เบอร์โทรผู้ปกครอง</label>
                   <input
                     type="tel"
                     value={editParentPhone}
                     onChange={(e) => setEditParentPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Social Channels */}
-              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#border]/50">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80]">Direct Contact IDs</span>
+              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#eae7df]/50">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80]">ไอดีสำหรับการติดต่อ (ไม่มี @)</span>
                 <div className="space-y-2">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID (without @)</label>
+                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID</label>
                     <input
                       type="text"
                       value={editLineId}
                       onChange={(e) => setEditLineId(e.target.value)}
-                      className="w-full bg-white border border-[#border] rounded-xl py-2 px-3 text-xs focus:outline-none"
+                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none"
                     />
                   </div>
                   <div className="space-y-1">
@@ -615,7 +616,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                       type="text"
                       value={editFacebook}
                       onChange={(e) => setEditFacebook(e.target.value)}
-                      className="w-full bg-white border border-[#border] rounded-xl py-2 px-3 text-xs focus:outline-none"
+                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none"
                     />
                   </div>
                 </div>
@@ -623,12 +624,12 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
 
               {/* Studio Notes */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Studio Notes / Interests</label>
+                <label className="text-xs font-bold text-muted-foreground">บันทึกข้อเสนอแนะคลาสศิลปะเพิ่มเติม</label>
                 <textarea
                   rows={2}
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  className="w-full bg-slate-50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none resize-none"
+                  className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none resize-none"
                 />
               </div>
 
@@ -637,7 +638,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/95 text-white py-3 rounded-xl font-semibold text-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-2"
               >
-                <Check className="w-4.5 h-4.5" /> Save Changes
+                <Check className="w-4.5 h-4.5" /> บันทึกข้อมูลที่แก้ไข
               </button>
             </form>
           </div>

@@ -41,7 +41,7 @@ export default function InquiriesPage() {
     try {
       // 1. Create student record
       // Map preferred schedule to notes
-      const initialNotes = `Preferred Schedule: ${inquiry.preferred_schedule}\nInquiry Notes: ${inquiry.notes}`;
+      const initialNotes = `ช่วงเวลาเรียนที่สะดวก: ${inquiry.preferred_schedule}\nบันทึกใบสมัคร: ${inquiry.notes}`;
       
       // Parse potential line ID from contact info
       let parsedLineId = '';
@@ -77,7 +77,7 @@ export default function InquiriesPage() {
       await loadInquiries();
       
       // 4. Alert user & suggest navigation
-      const navigateToStudent = window.confirm(`"${inquiry.student_name} (${inquiry.nickname})" was successfully imported as an active student! Would you like to view their profile now?`);
+      const navigateToStudent = window.confirm(`นำเข้าข้อมูล "${inquiry.student_name} (${inquiry.nickname || 'ไม่มีชื่อเล่น'})" เข้าสู่รายชื่อนักเรียนใหม่เรียบร้อยแล้ว! คุณต้องการเปิดไปดูหน้าโปรไฟล์นักเรียนตอนนี้เลยหรือไม่?`);
       if (navigateToStudent) {
         // Find the newly created student by name (since nickname/name matches)
         const students = await dataService.getStudents();
@@ -110,26 +110,26 @@ export default function InquiriesPage() {
       <div className="flex justify-between items-center border-b border-[#eae7df] pb-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-serif flex items-center gap-2">
-            Inquiry Inbox
+            กล่องใบสมัครเรียน
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            View customer registrations & intake forms
+            ดูรายละเอียดประวัติการกรอกฟอร์มลงทะเบียนของนักเรียนใหม่
           </p>
         </div>
         <button
           onClick={() => setShowGuide(true)}
           className="text-primary hover:text-primary/95 flex items-center gap-1 text-xs font-semibold py-1.5 px-3 bg-primary/10 rounded-xl"
         >
-          <HelpCircle className="w-4 h-4" /> Setup Integration
+          <HelpCircle className="w-4 h-4" /> คู่มือเชื่อมฟอร์ม
         </button>
       </div>
 
       {/* Google Sheets / Responses Action buttons */}
-      <div className="bg-white border border-[#border] rounded-2xl p-4 space-y-3.5 shadow-sm">
+      <div className="bg-white border border-[#eae7df] rounded-2xl p-4 space-y-3.5 shadow-sm">
         <div className="space-y-1">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Form Integrations</h3>
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ระบบรับสมัครออนไลน์</h3>
           <p className="text-xs text-foreground/80 leading-relaxed">
-            Students sign up using your online form. Open the direct sheet responses to view original raw entries.
+            ผู้ปกครองกรอกสมัครผ่านฟอร์ม คุณสามารถคลิกด้านล่างเพื่อเปิดแบบฟอร์มหรือเปิดสเปรดชีตแสดงข้อมูลดิบต้นฉบับได้ทันที
           </p>
         </div>
         
@@ -138,9 +138,9 @@ export default function InquiriesPage() {
             href="https://docs.google.com/forms"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-white border border-[#border] hover:border-[#8e8a80] text-foreground py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs"
+            className="flex-1 bg-white border border-[#eae7df] hover:border-[#8e8a80] text-foreground py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs"
           >
-            Google Form <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+            กูเกิลฟอร์ม <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
           </a>
           <a
             href="https://docs.google.com/spreadsheets"
@@ -148,7 +148,7 @@ export default function InquiriesPage() {
             rel="noopener noreferrer"
             className="flex-1 bg-[#107c41]/10 text-[#107c41] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
           >
-            Google Sheets <ExternalLink className="w-3.5 h-3.5" />
+            กูเกิลชีต <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function InquiriesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-          <p className="text-xs text-muted-foreground">Checking inquiries...</p>
+          <p className="text-xs text-muted-foreground">กำลังตรวจสอบรายการใบสมัครใหม่...</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -165,19 +165,19 @@ export default function InquiriesPage() {
           <div className="space-y-3">
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Inbox className="w-4 h-4" />
-              New Registrations ({pendingInquiries.length})
+              รายการใบสมัครใหม่รอการตรวจสอบ ({pendingInquiries.length})
             </h2>
 
             {pendingInquiries.length === 0 ? (
-              <div className="bg-white border border-dashed border-[#border] rounded-2xl py-8 px-4 text-center">
-                <p className="text-xs text-muted-foreground font-medium">Your inbox is clear! No pending registrations.</p>
+              <div className="bg-white border border-dashed border-[#eae7df] rounded-2xl py-8 px-4 text-center">
+                <p className="text-xs text-muted-foreground font-medium">กล่องจดหมายว่าง! ยังไม่มีใบสมัครค้างอยู่ขณะนี้</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {pendingInquiries.map((inquiry) => (
                   <div
                     key={inquiry.id}
-                    className="bg-white border border-[#border] rounded-2xl p-4.5 space-y-3 shadow-sm hover:shadow-md transition-all duration-200"
+                    className="bg-white border border-[#eae7df] rounded-2xl p-4.5 space-y-3 shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     {/* Header info */}
                     <div className="flex justify-between items-start">
@@ -185,13 +185,13 @@ export default function InquiriesPage() {
                         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                           {inquiry.student_name}
                           {inquiry.nickname && (
-                            <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md">
+                            <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans">
                               {inquiry.nickname}
                             </span>
                           )}
                         </h3>
                         <p className="text-[10px] text-muted-foreground">
-                          Submitted: {new Date(inquiry.created_at).toLocaleString('th-TH', { 
+                          ส่งเมื่อ: {new Date(inquiry.created_at).toLocaleString('th-TH', { 
                             month: 'short', 
                             day: 'numeric',
                             hour: '2-digit',
@@ -200,23 +200,23 @@ export default function InquiriesPage() {
                         </p>
                       </div>
                       <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-accent/15 text-accent uppercase tracking-wider">
-                        Pending
+                        รอดำเนินการ
                       </span>
                     </div>
 
                     {/* Registration details */}
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 bg-muted/30 p-2.5 rounded-xl border border-[#border]/40 text-xs">
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 bg-muted/30 p-2.5 rounded-xl border border-[#eae7df]/40 text-xs">
                       <div>
-                        <span className="text-[10px] text-muted-foreground font-semibold">Parent</span>
+                        <span className="text-[10px] text-muted-foreground font-semibold">ผู้ปกครอง</span>
                         <p className="font-semibold text-foreground truncate">{inquiry.parent_name || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] text-muted-foreground font-semibold">Phone</span>
-                        <p className="font-semibold text-foreground truncate">{inquiry.parent_phone || 'N/A'}</p>
+                        <span className="text-[10px] text-muted-foreground font-semibold">เบอร์โทร</span>
+                        <p className="font-semibold text-foreground truncate font-sans">{inquiry.parent_phone || 'N/A'}</p>
                       </div>
                       <div className="col-span-2 mt-1">
-                        <span className="text-[10px] text-muted-foreground font-semibold">Pref. Schedule</span>
-                        <p className="font-semibold text-foreground">{inquiry.preferred_schedule || 'Flexible'}</p>
+                        <span className="text-[10px] text-muted-foreground font-semibold">เวลาเรียนที่สนใจ</span>
+                        <p className="font-semibold text-foreground">{inquiry.preferred_schedule || 'ระบุภายหลัง'}</p>
                       </div>
                     </div>
 
@@ -228,13 +228,13 @@ export default function InquiriesPage() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex justify-between items-center border-t border-[#border]/50 pt-3">
+                    <div className="flex justify-between items-center border-t border-[#eae7df]/50 pt-3">
                       <div className="flex gap-2">
                         {inquiry.parent_phone && (
                           <a
                             href={`tel:${inquiry.parent_phone}`}
                             className="bg-secondary/10 text-secondary p-2 rounded-xl hover:scale-105 active:scale-95 transition-all"
-                            title="Call Parent"
+                            title="โทรด่วนหาผู้ปกครอง"
                           >
                             <Phone className="w-3.5 h-3.5" />
                           </a>
@@ -254,7 +254,7 @@ export default function InquiriesPage() {
                         <button
                           onClick={() => handleArchiveInquiry(inquiry.id)}
                           className="bg-muted hover:bg-muted/80 text-muted-foreground p-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
-                          title="Archive Inquiry"
+                          title="เก็บถาวรใบสมัครนี้"
                         >
                           <Archive className="w-3.5 h-3.5" />
                         </button>
@@ -263,7 +263,7 @@ export default function InquiriesPage() {
                           onClick={() => handleImportStudent(inquiry)}
                           className="bg-primary hover:bg-primary/95 text-white py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs"
                         >
-                          <UserPlus className="w-3.5 h-3.5" /> Import Student
+                          <UserPlus className="w-3.5 h-3.5" /> นำเข้ารายชื่อนักเรียน
                         </button>
                       </div>
                     </div>
@@ -277,30 +277,30 @@ export default function InquiriesPage() {
           {archivedOrImported.length > 0 && (
             <div className="space-y-2 pt-2">
               <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Processed Registrations ({archivedOrImported.length})
+                รายการสมัครเรียนที่ดำเนินแล้ว ({archivedOrImported.length})
               </h2>
               <div className="space-y-2">
                 {archivedOrImported.map((inquiry) => (
                   <div
                     key={inquiry.id}
-                    className="bg-white/60 border border-[#border]/60 rounded-xl p-3 flex justify-between items-center text-xs shadow-xs"
+                    className="bg-white/60 border border-[#eae7df]/60 rounded-xl p-3 flex justify-between items-center text-xs shadow-xs"
                   >
                     <div>
                       <h4 className="font-bold text-foreground/80">
                         {inquiry.student_name} {inquiry.nickname && `(${inquiry.nickname})`}
                       </h4>
                       <p className="text-[10px] text-muted-foreground">
-                        {inquiry.status === 'imported' ? 'Imported to Directory' : 'Archived'}
+                        {inquiry.status === 'imported' ? 'นำเข้ารายชื่อนักเรียนสำเร็จแล้ว' : 'เก็บถาวรประวัติสมัคร'}
                       </p>
                     </div>
                     <div>
                       {inquiry.status === 'imported' ? (
                         <span className="bg-secondary/10 text-secondary flex items-center gap-1 py-1 px-2.5 rounded-full font-bold text-[9px] uppercase tracking-wider">
-                          <CheckCircle className="w-3 h-3" /> Imported
+                          <CheckCircle className="w-3 h-3" /> นำเข้าสำเร็จ
                         </span>
                       ) : (
                         <span className="bg-muted text-muted-foreground py-1 px-2.5 rounded-full font-bold text-[9px] uppercase tracking-wider">
-                          Archived
+                          เก็บถาวร
                         </span>
                       )}
                     </div>
@@ -319,11 +319,11 @@ export default function InquiriesPage() {
             onClick={() => setShowGuide(false)}
             className="absolute inset-0 bg-black/50 backdrop-blur-xs"
           />
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 border border-[#border] animate-slide-up z-10 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4 border-b border-[#border] pb-3">
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 border border-[#eae7df] animate-slide-up z-10 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4 border-b border-[#eae7df] pb-3">
               <div>
-                <h3 className="text-base font-bold font-serif text-foreground">Google Form Sync Setup</h3>
-                <p className="text-[10px] text-muted-foreground">Automate registrations to your dashboard</p>
+                <h3 className="text-base font-bold font-serif text-foreground">การตั้งเชื่อมต่อ Google Forms</h3>
+                <p className="text-[10px] text-muted-foreground">วิธีให้ฟอร์มสมัครเรียนส่งข้อมูลเข้าหน้านี้โดยอัตโนมัติ</p>
               </div>
               <button 
                 onClick={() => setShowGuide(false)}
@@ -335,22 +335,22 @@ export default function InquiriesPage() {
 
             <div className="space-y-4 text-xs text-muted-foreground leading-relaxed">
               <p>
-                You can configure Google Forms to automatically push new customer submissions directly into this Inbox.
+                ผู้ดูแลระบบสามารถเขียนสคริปต์สั้นๆ ใน Google Apps Script ของ Sheets เพื่อสั่งให้ทุกครั้งที่มีเด็กมาสมัครเรียนข้อมูลจะถูกส่งมาแสดงในกล่องข้อมูลนี้ได้ทันที:
               </p>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-foreground">Step 1: Get Webhook URL</h4>
+                <h4 className="font-bold text-foreground">ขั้นตอนที่ 1: รับ URL Webhook สำหรับอินพุตข้อมูล</h4>
                 <p>
-                  In Supabase, create a Database Webhook or write a Next.js API route (e.g. `/api/inquiries`) to ingest registrations.
+                  สร้าง Supabase Webhook หรือจัดตั้ง Next.js API Route ในระบบ เช่น `/api/inquiries` เพื่อเตรียมรับข้อมูลดิบ
                 </p>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-foreground">Step 2: Google App Script Integration</h4>
+                <h4 className="font-bold text-foreground">ขั้นตอนที่ 2: ผูกสคริปต์ Apps Script ในสเปรดชีตของฟอร์ม</h4>
                 <p>
-                  In your Google Sheet (connected to the Form), click <strong>Extensions &gt; Apps Script</strong>. Paste the script below:
+                  ไปที่หน้าสเปรดชีตที่ผูกกับ Google Form แล้วคลิกเมนู <strong>ส่วนขยาย &gt; Apps Script</strong> จากนั้นลบโค้ดเดิมแล้ววางสคริปต์นี้ลงไป:
                 </p>
-                <pre className="bg-slate-50 border border-[#border] p-2 rounded-xl text-[10px] overflow-x-auto text-foreground font-mono">
+                <pre className="bg-slate-50 border border-[#eae7df] p-2 rounded-xl text-[10px] overflow-x-auto text-foreground font-mono">
 {`function onSubmit(e) {
   var response = e.values;
   var payload = {
@@ -363,7 +363,7 @@ export default function InquiriesPage() {
     notes: response[7]
   };
   
-  UrlFetchApp.fetch("YOUR_WEBHOOK_URL", {
+  UrlFetchApp.fetch("วาง_URL_สำหรับเชื่อมต่อ_ที่นี่", {
     method: "POST",
     contentType: "application/json",
     payload: JSON.stringify(payload)
@@ -373,9 +373,9 @@ export default function InquiriesPage() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-foreground">Step 3: Set Trigger</h4>
+                <h4 className="font-bold text-foreground">ขั้นตอนที่ 3: ตั้งตัวทริกเกอร์ (Trigger)</h4>
                 <p>
-                  In Apps Script, click the **Triggers (alarm icon)** in the left sidebar. Add a trigger to run the `onSubmit` function **&ldquo;On form submit&rdquo;**.
+                  กดไอคอน **นาฬิกาปลุก (ตัวกระตุ้น/Triggers)** ในเมนูด้านซ้ายของ Apps Script จากนั้นกดปุ่มเพิ่มเพื่อสั่งให้ฟังก์ชัน `onSubmit` ทำงานแบบ **&ldquo;เมื่อส่งแบบฟอร์ม (On form submit)&rdquo;**
                 </p>
               </div>
 
@@ -383,7 +383,7 @@ export default function InquiriesPage() {
                 onClick={() => setShowGuide(false)}
                 className="w-full bg-primary hover:bg-primary/95 text-white py-2.5 rounded-xl font-semibold text-xs transition-all mt-2"
               >
-                Got It, Thanks!
+                เข้าใจวิธีทำแล้ว ปิดหน้านี้
               </button>
             </div>
           </div>

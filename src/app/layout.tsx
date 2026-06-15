@@ -3,8 +3,8 @@ import "./globals.css";
 import NavBar from "@/components/nav-bar";
 
 export const metadata: Metadata = {
-  title: "FlyArt Rayong | Art Studio Manager",
-  description: "Track student progress, manage course lessons, view registrations, and log drawings on-the-go.",
+  title: "FlyArt Rayong | ระบบจัดการสตูดิโอศิลปะ",
+  description: "ระบบบันทึกความคืบหน้าการเรียน ตรวจสอบการเข้าเรียน และติดตามผลงานศิลปะของนักเรียนสตูดิโอ FlyArt Rayong",
 };
 
 export const viewport: Viewport = {
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="th" className="h-full">
       <body className="flex justify-center bg-[#121211] min-h-screen text-[#1c1b18]">
         {/* Mobile viewport mock frame container */}
         <div className="relative flex flex-col w-full max-w-md min-h-screen bg-[#fbfaf7] border-x border-[#eae7df] shadow-2xl pb-24 overflow-x-hidden">

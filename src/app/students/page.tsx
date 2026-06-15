@@ -127,17 +127,17 @@ function StudentDirectoryContent() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-serif">
-            Student Directory
+            รายชื่อนักเรียน
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage student course plans & contacts
+            จัดการคอร์สเรียน ข้อมูลติดต่อ และการเช็คอิน
           </p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
           className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold shadow-sm active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4" /> Add Student
+          <Plus className="w-4 h-4" /> เพิ่มนักเรียนใหม่
         </button>
       </div>
 
@@ -148,10 +148,10 @@ function StudentDirectoryContent() {
           <Search className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search by name or nickname..."
+            placeholder="ค้นหาด้วยชื่อจริง หรือชื่อเล่น..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#border] rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder-muted-foreground/70 transition-all shadow-sm"
+            className="w-full bg-white border border-[#eae7df] rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder-muted-foreground/70 transition-all shadow-sm"
           />
         </div>
 
@@ -160,19 +160,36 @@ function StudentDirectoryContent() {
           <div className="text-[#8e8a80] mr-1">
             <SlidersHorizontal className="w-4 h-4" />
           </div>
-          {(['all', 'active', 'inactive'] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`text-xs font-semibold py-1.5 px-3.5 rounded-full capitalize border transition-all ${
-                statusFilter === status
-                  ? 'bg-primary text-white border-primary shadow-sm'
-                  : 'bg-white text-muted-foreground border-[#border] hover:border-[#8e8a80]'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`text-xs font-semibold py-1.5 px-3.5 rounded-full border transition-all ${
+              statusFilter === 'all'
+                ? 'bg-primary text-white border-primary shadow-sm'
+                : 'bg-white text-muted-foreground border-[#eae7df] hover:border-[#8e8a80]'
+            }`}
+          >
+            ทั้งหมด
+          </button>
+          <button
+            onClick={() => setStatusFilter('active')}
+            className={`text-xs font-semibold py-1.5 px-3.5 rounded-full border transition-all ${
+              statusFilter === 'active'
+                ? 'bg-primary text-white border-primary shadow-sm'
+                : 'bg-white text-muted-foreground border-[#eae7df] hover:border-[#8e8a80]'
+            }`}
+          >
+            กำลังเรียน
+          </button>
+          <button
+            onClick={() => setStatusFilter('inactive')}
+            className={`text-xs font-semibold py-1.5 px-3.5 rounded-full border transition-all ${
+              statusFilter === 'inactive'
+                ? 'bg-primary text-white border-primary shadow-sm'
+                : 'bg-white text-muted-foreground border-[#eae7df] hover:border-[#8e8a80]'
+            }`}
+          >
+            จบคอร์ส/พักเรียน
+          </button>
         </div>
       </div>
 
@@ -180,13 +197,13 @@ function StudentDirectoryContent() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-          <p className="text-xs text-muted-foreground">Loading directory...</p>
+          <p className="text-xs text-muted-foreground">กำลังโหลดรายชื่อ...</p>
         </div>
       ) : filteredStudents.length === 0 ? (
-        <div className="border-2 border-dashed border-[#border] rounded-2xl py-12 px-4 text-center">
-          <p className="text-sm font-semibold text-foreground">No students found</p>
+        <div className="border-2 border-dashed border-[#eae7df] rounded-2xl py-12 px-4 text-center">
+          <p className="text-sm font-semibold text-foreground">ไม่พบข้อมูลนักเรียน</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Try adjusting your search or add a new student above.
+            ลองเปลี่ยนคำค้นหา หรือกดปุ่ม &ldquo;เพิ่มนักเรียนใหม่&rdquo; ด้านบนเพื่อลงทะเบียน
           </p>
         </div>
       ) : (
@@ -199,7 +216,7 @@ function StudentDirectoryContent() {
             return (
               <div
                 key={student.id}
-                className="bg-white border border-[#border] rounded-2xl p-4 space-y-3.5 hover:shadow-sm transition-all duration-200 shadow-sm"
+                className="bg-white border border-[#eae7df] rounded-2xl p-4 space-y-3.5 hover:shadow-sm transition-all duration-200 shadow-sm"
               >
                 {/* Header info */}
                 <div className="flex justify-between items-start">
@@ -207,13 +224,13 @@ function StudentDirectoryContent() {
                     <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
                       {student.name}
                       {student.nickname && (
-                        <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md">
+                        <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans">
                           {student.nickname}
                         </span>
                       )}
                     </h3>
                     <p className="text-[10px] text-muted-foreground">
-                      Added: {new Date(student.created_at).toLocaleDateString('th-TH')}
+                      ลงทะเบียน: {new Date(student.created_at).toLocaleDateString('th-TH')}
                     </p>
                   </Link>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -221,16 +238,16 @@ function StudentDirectoryContent() {
                       ? 'bg-secondary/15 text-secondary' 
                       : 'bg-primary/15 text-primary'
                   }`}>
-                    {student.status === 'active' ? 'Active' : 'Completed/Inactive'}
+                    {student.status === 'active' ? 'กำลังเรียน' : 'พักเรียน/จบคอร์ส'}
                   </span>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-muted-foreground">Course Progress</span>
-                    <span className="text-foreground">
-                      {student.completed_lessons} / {student.total_lessons} lessons ({completionRate}%)
+                    <span className="text-muted-foreground">ความคืบหน้าของคอร์ส</span>
+                    <span className="text-foreground font-sans">
+                      {student.completed_lessons} / {student.total_lessons} ครั้ง ({completionRate}%)
                     </span>
                   </div>
                   <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden">
@@ -244,7 +261,7 @@ function StudentDirectoryContent() {
                 </div>
 
                 {/* Contacts & Direct Action Link */}
-                <div className="flex items-center justify-between border-t border-[#border]/50 pt-3">
+                <div className="flex items-center justify-between border-t border-[#eae7df]/50 pt-3">
                   <div className="flex items-center gap-2">
                     {/* Line Link */}
                     {student.line_id ? (
@@ -253,7 +270,7 @@ function StudentDirectoryContent() {
                         target="_blank"
                         rel="noreferrer"
                         className="bg-[#06C755]/10 text-[#06C755] p-2 rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-bold text-xs"
-                        title="Chat on Line"
+                        title="ทัก Line"
                       >
                         <span className="mr-1 text-[10px] font-semibold">Line</span>
                         <MessageSquare className="w-3.5 h-3.5 fill-current" />
@@ -262,9 +279,9 @@ function StudentDirectoryContent() {
                       <button 
                         disabled 
                         className="bg-muted text-muted-foreground/45 p-2 rounded-xl cursor-not-allowed flex items-center justify-center text-[10px] font-semibold"
-                        title="No Line ID added"
+                        title="ไม่ได้ระบุไอดี Line"
                       >
-                        Line (N/A)
+                        Line (ไม่มี)
                       </button>
                     )}
 
@@ -275,18 +292,18 @@ function StudentDirectoryContent() {
                         target="_blank"
                         rel="noreferrer"
                         className="bg-[#0084FF]/10 text-[#0084FF] p-2 rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-bold text-xs"
-                        title="Messenger"
+                        title="ส่งข้อความผ่าน Messenger"
                       >
-                        <span className="mr-1 text-[10px] font-semibold">Messenger</span>
+                        <span className="mr-1 text-[10px] font-semibold">Inbox</span>
                         <MessageSquare className="w-3.5 h-3.5" />
                       </a>
                     ) : (
                       <button 
                         disabled 
                         className="bg-muted text-muted-foreground/45 p-2 rounded-xl cursor-not-allowed flex items-center justify-center text-[10px] font-semibold"
-                        title="No FB username"
+                        title="ไม่ได้ระบุ Facebook"
                       >
-                        Chat (N/A)
+                        Inbox (ไม่มี)
                       </button>
                     )}
 
@@ -295,7 +312,7 @@ function StudentDirectoryContent() {
                       <a
                         href={`tel:${student.parent_phone}`}
                         className="bg-secondary/10 text-secondary p-2 rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
-                        title="Call Parent"
+                        title="โทรหาผู้ปกครอง"
                       >
                         <Phone className="w-3.5 h-3.5" />
                       </a>
@@ -306,7 +323,7 @@ function StudentDirectoryContent() {
                     href={`/students/${student.id}`}
                     className="text-xs font-bold text-primary flex items-center hover:underline gap-0.5"
                   >
-                    Details <ChevronRight className="w-4 h-4" />
+                    ประวัติคลาสเรียน <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
@@ -324,11 +341,11 @@ function StudentDirectoryContent() {
             className="absolute inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
           />
           {/* Drawer Body */}
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#border] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
-            <div className="flex justify-between items-center mb-5 border-b border-[#border] pb-3">
+          <div className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl p-6 border-t border-[#eae7df] animate-slide-up z-10 max-h-[85vh] overflow-y-auto pb-12">
+            <div className="flex justify-between items-center mb-5 border-b border-[#eae7df] pb-3">
               <div>
-                <h2 className="text-lg font-bold font-serif text-foreground">Add New Student</h2>
-                <p className="text-xs text-muted-foreground">Register student and setup course package</p>
+                <h2 className="text-lg font-bold font-serif text-foreground">ลงทะเบียนนักเรียนใหม่</h2>
+                <p className="text-xs text-muted-foreground">เพิ่มรายชื่อนักเรียนและตั้งค่าคอร์สเรียน</p>
               </div>
               <button 
                 onClick={handleCloseForm}
@@ -341,37 +358,37 @@ function StudentDirectoryContent() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Student Full Name *</label>
+                <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Pitchaya Rakdee"
+                  placeholder="เช่น เด็กหญิงพิชญา รักดี"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
               {/* Nickname & Lessons */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Nickname</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
                   <input
                     type="text"
-                    placeholder="e.g. Mini"
+                    placeholder="เช่น มินิ"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Total Lessons</label>
+                  <label className="text-xs font-bold text-muted-foreground">จำนวนชั่วโมง/ครั้งที่สมัคร</label>
                   <input
                     type="number"
                     min="1"
                     value={totalLessons}
                     onChange={(e) => setTotalLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -379,49 +396,49 @@ function StudentDirectoryContent() {
               {/* Parent Details */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Parent Name</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
                   <input
                     type="text"
-                    placeholder="e.g. Somsak"
+                    placeholder="เช่น คุณสมศักดิ์"
                     value={parentName}
                     onChange={(e) => setParentName(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">Parent Phone</label>
+                  <label className="text-xs font-bold text-muted-foreground">เบอร์โทรติดต่อผู้ปกครอง</label>
                   <input
                     type="tel"
-                    placeholder="e.g. 0812345678"
+                    placeholder="เช่น 0812345678"
                     value={parentPhone}
                     onChange={(e) => setParentPhone(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
 
               {/* Chat Deep Links */}
-              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#border]/50">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#8e8a80]">Direct Contact IDs</span>
+              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#eae7df]/50">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80]">ไอดีสำหรับการติดต่อ (ไม่มี @)</span>
                 <div className="space-y-2">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID (without @)</label>
+                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID</label>
                     <input
                       type="text"
-                      placeholder="e.g. mini_mom"
+                      placeholder="เช่น mini_mom"
                       value={lineId}
                       onChange={(e) => setLineId(e.target.value)}
-                      className="w-full bg-white border border-[#border] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Facebook Username (for Messenger)</label>
+                    <label className="text-[11px] font-semibold text-muted-foreground">Facebook Username (สำหรับลิงก์ Messenger)</label>
                     <input
                       type="text"
-                      placeholder="e.g. somsak.rakdee"
+                      placeholder="เช่น somsak.rakdee"
                       value={facebookUsername}
                       onChange={(e) => setFacebookUsername(e.target.value)}
-                      className="w-full bg-white border border-[#border] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -429,13 +446,13 @@ function StudentDirectoryContent() {
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Studio Notes / Focus Areas</label>
+                <label className="text-xs font-bold text-muted-foreground">บันทึกย่อ / ความสนใจของเด็ก</label>
                 <textarea
-                  placeholder="e.g. Enjoys painting with bright water colors. Needs basic shapes help..."
+                  placeholder="เช่น ชอบสีน้ำ สีสดใส หรือควรเน้นหัดร่างทรงกลมและโครงสร้างรูปทรง..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  className="w-full bg-slate-50/50 border border-[#border] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                  className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                 />
               </div>
 
@@ -444,7 +461,7 @@ function StudentDirectoryContent() {
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/95 text-white py-3 rounded-xl font-semibold text-sm shadow-md shadow-primary/15 active:scale-98 transition-all flex items-center justify-center gap-1.5 mt-2"
               >
-                <Check className="w-4.5 h-4.5" /> Save Registration
+                <Check className="w-4.5 h-4.5" /> บันทึกและลงทะเบียน
               </button>
             </form>
           </div>
@@ -459,7 +476,7 @@ export default function StudentDirectory() {
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <PlusCircle className="w-10 h-10 text-primary animate-pulse mb-4" />
-        <p className="text-muted-foreground font-medium text-sm">Loading Student Directory...</p>
+        <p className="text-muted-foreground font-medium text-sm">กำลังโหลดทำเนียบนักเรียน...</p>
       </div>
     }>
       <StudentDirectoryContent />

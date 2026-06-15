@@ -9,17 +9,17 @@ export default function NavBar() {
 
   const navItems = [
     {
-      label: 'Home',
+      label: 'หน้าแรก',
       href: '/',
       icon: LayoutDashboard,
     },
     {
-      label: 'Students',
+      label: 'นักเรียน',
       href: '/students',
       icon: Users,
     },
     {
-      label: 'Inquiries',
+      label: 'สมัครเรียน',
       href: '/inquiries',
       icon: Inbox,
     },
@@ -55,7 +55,7 @@ export default function NavBar() {
         <Link
           href="/students?add=true"
           className="flex flex-col items-center justify-center bg-primary text-white p-2.5 rounded-full shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-200 -mt-5 border-4 border-[#fbfaf7]"
-          title="Quick Add Student"
+          title="เพิ่มนักเรียนใหม่"
         >
           <PlusCircle className="w-5 h-5 stroke-[2.5px]" />
         </Link>
