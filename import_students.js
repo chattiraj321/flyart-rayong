@@ -1,3 +1,4 @@
+global.WebSocket = class {}; // Mock WebSocket for Node environment
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
@@ -162,16 +163,26 @@ async function main() {
   const validRawStudents = rawStudents.filter(s => {
     const name = s['ชื่อ-นามสกุล นักเรียน'];
     const nickname = s['ชื่อเล่น'];
-    return name && String(name).trim() !== '' && String(name).trim() !== '-' &&
-           nickname && String(nickname).trim() !== '' && String(nickname).trim() !== '-';
+    const hasName = name && String(name).trim() !== '' && String(name).trim() !== '-';
+    const hasNickname = nickname && String(nickname).trim() !== '' && String(nickname).trim() !== '-';
+    return hasName || hasNickname;
   });
 
-  console.log(`Filtered out ${rawStudents.length - validRawStudents.length} students without names or nicknames. Remaining: ${validRawStudents.length} students to import.`);
+  console.log(`Filtered out ${rawStudents.length - validRawStudents.length} students without names and nicknames. Remaining: ${validRawStudents.length} students to import.`);
 
   // Clean and transform students
   const cleanedStudents = validRawStudents.map((s, idx) => {
-    const name = String(s['ชื่อ-นามสกุล นักเรียน']).trim();
-    const nickname = String(s['ชื่อเล่น']).trim();
+    const rawName = s['ชื่อ-นามสกุล นักเรียน'];
+    const rawNickname = s['ชื่อเล่น'];
+    
+    const name = rawName && String(rawName).trim() !== '' && String(rawName).trim() !== '-'
+      ? String(rawName).trim()
+      : String(rawNickname).trim(); // Default to nickname if name is empty
+      
+    const nickname = rawNickname && String(rawNickname).trim() !== '' && String(rawNickname).trim() !== '-'
+      ? String(rawNickname).trim()
+      : String(rawName).trim(); // Default to name if nickname is empty
+      
     const course = mapCourse(s['หลักสูตร']);
     
     // 2. Parse status
@@ -235,55 +246,84 @@ async function main() {
   // Connect to Supabase
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // Clear existing records first
-  console.log('\nClearing existing students in database...');
-  const { error: deleteError } = await supabase
+  // Fetch existing students
+  console.log('\nFetching existing students from database...');
+  const { data: existingStudents, error: fetchError } = await supabase
     .from('students')
-    .delete()
-    .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
-    
-  if (deleteError) {
-    console.error('Error clearing database:', deleteError.message);
-    console.log('Stopping execution.');
+    .select('id, name, nickname');
+
+  if (fetchError) {
+    console.error('Error fetching existing students:', fetchError.message);
     process.exit(1);
-  } else {
-    console.log('Database table "students" cleared successfully.');
   }
 
-  console.log('\nStarting database inserts...');
+  console.log(`Found ${existingStudents.length} existing students in database.`);
 
-  // Let's insert in batches of 10 to keep logs clean and prevent timeout
-  const batchSize = 10;
-  let successCount = 0;
+  console.log('\nStarting database upserts...');
+  let insertCount = 0;
+  let updateCount = 0;
   let failCount = 0;
 
-  for (let i = 0; i < cleanedStudents.length; i += batchSize) {
-    const batch = cleanedStudents.slice(i, i + batchSize);
-    console.log(`Inserting batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(cleanedStudents.length / batchSize)} (${batch.length} records)...`);
+  for (const student of cleanedStudents) {
+    // Check if student already exists by name
+    const existing = existingStudents.find(
+      s => s.name.trim().toLowerCase() === student.name.trim().toLowerCase()
+    );
 
-    const { data, error } = await supabase
-      .from('students')
-      .insert(batch)
-      .select();
+    if (existing) {
+      // Update existing record, keeping its id (this preserves its sessions/check-ins)
+      console.log(`Updating existing student: "${student.name}" (ID: ${existing.id})`);
+      
+      const { error } = await supabase
+        .from('students')
+        .update({
+          birth_date: student.birth_date,
+          grade: student.grade,
+          school: student.school,
+          address: student.address,
+          student_phone: student.student_phone,
+          parent_name: student.parent_name,
+          parent_phone: student.parent_phone,
+          line_id: student.line_id,
+          course_type: student.course_type,
+          total_lessons: student.total_lessons,
+          status: student.status,
+          start_date: student.start_date,
+          expiration_month: student.expiration_month
+        })
+        .eq('id', existing.id);
 
-    if (error) {
-      console.error(`Error inserting batch starting at index ${i}:`, error.message);
-      if (error.code === '42501') {
-        console.error('\n⚠️ ROW LEVEL SECURITY (RLS) ERROR DETECTED.');
-        console.error('Please either:');
-        console.error('1. Disable Row-Level Security (RLS) or add an INSERT/UPDATE policy for the "anon" role in Supabase Dashboard -> Table Editor -> students -> RLS policies.');
-        console.error('2. Add "SUPABASE_SERVICE_ROLE_KEY=your_service_role_key" to your .env.local file so this script can bypass RLS policies.');
-        console.error('\nStopping execution due to permission error.');
-        process.exit(1);
+      if (error) {
+        console.error(`Error updating "${student.name}":`, error.message);
+        failCount++;
+      } else {
+        updateCount++;
       }
-      failCount += batch.length;
     } else {
-      console.log(`Successfully inserted ${data.length} records.`);
-      successCount += data.length;
+      // Insert new record
+      console.log(`Inserting new student: "${student.name}" (${student.nickname})`);
+      const { error } = await supabase
+        .from('students')
+        .insert([student]);
+
+      if (error) {
+        console.error(`Error inserting "${student.name}":`, error.message);
+        if (error.code === '42501') {
+          console.error('\n⚠️ ROW LEVEL SECURITY (RLS) ERROR DETECTED.');
+          console.error('Please either:');
+          console.error('1. Disable Row-Level Security (RLS) or add an INSERT/UPDATE policy for the "anon" role in Supabase Dashboard -> Table Editor -> students -> RLS policies.');
+          console.error('2. Add "SUPABASE_SERVICE_ROLE_KEY=your_service_role_key" to your .env.local file so this script can bypass RLS policies.');
+          console.error('\nStopping execution due to permission error.');
+          process.exit(1);
+        }
+        failCount++;
+      } else {
+        insertCount++;
+      }
     }
   }
 
-  console.log(`\nImport complete! Success: ${successCount}, Failed: ${failCount}`);
+  console.log(`\nImport complete! Inserted: ${insertCount}, Updated: ${updateCount}, Failed: ${failCount}`);
 }
 
 main().catch(err => {
