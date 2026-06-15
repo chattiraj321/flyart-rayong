@@ -142,10 +142,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
         try {
           imageUrl = await dataService.uploadArtwork(checkInFile);
         } catch (uploadErr: any) {
-          console.error('Upload artwork failed:', uploadErr);
-          alert(`ไม่สามารถอัปโหลดรูปภาพผลงานได้: เกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคำแนะนำในการแก้ไข:\n1. กรุณาตรวจสอบว่าใน Supabase Dashboard ของคุณ ได้สร้าง Bucket ชื่อ "artworks" แล้วหรือยัง\n2. ตั้งค่า Bucket "artworks" ให้เป็น Public (สาธารณะ)\n3. เพิ่ม Policy ในหน้า Storage เพื่ออนุญาตให้บุคคลทั่วไปสามารถอัปโหลดรูปได้ (Insert/Upload policy)`);
-          setUploading(false);
-          return;
+          console.error('Upload artwork failed, asking for fallback:', uploadErr);
+          const confirmWithoutImage = window.confirm(
+            `ไม่สามารถอัปโหลดรูปภาพผลงานได้เนื่องจากเกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคุณต้องการดำเนินต่อและ "บันทึกเช็คอินโดยไม่ใส่รูปภาพ" แทนหรือไม่?`
+          );
+          if (!confirmWithoutImage) {
+            setUploading(false);
+            return;
+          }
+          imageUrl = ''; // Clear image url to proceed without image
         }
       }
 
@@ -185,10 +190,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
         try {
           finalAvatarUrl = await dataService.uploadArtwork(avatarFile);
         } catch (uploadErr: any) {
-          console.error('Upload avatar failed:', uploadErr);
-          alert(`ไม่สามารถอัปโหลดรูปโปรไฟล์ได้: เกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคำแนะนำในการแก้ไข:\n1. กรุณาตรวจสอบว่าใน Supabase Dashboard ของคุณ ได้สร้าง Bucket ชื่อ "artworks" แล้วหรือยัง\n2. ตั้งค่า Bucket "artworks" ให้เป็น Public (สาธารณะ)\n3. เพิ่ม Policy ในหน้า Storage เพื่ออนุญาตให้บุคคลทั่วไปสามารถอัปโหลดรูปได้ (Insert/Upload policy)`);
-          setUploading(false);
-          return;
+          console.error('Upload avatar failed, asking for fallback:', uploadErr);
+          const confirmWithoutAvatar = window.confirm(
+            `ไม่สามารถอัปโหลดรูปโปรไฟล์ใหม่ได้เนื่องจากเกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคุณต้องการดำเนินต่อและ "บันทึกประวัติโดยใช้ข้อมูลอื่น (ไม่เปลี่ยนรูปโปรไฟล์ใหม่)" หรือไม่?`
+          );
+          if (!confirmWithoutAvatar) {
+            setUploading(false);
+            return;
+          }
+          // fallback to current avatar url (no change)
         }
       }
 
@@ -654,9 +664,8 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
 
               {/* Progress Notes */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">บันทึกพัฒนาการ / กิจกรรมคลาสเรียน</label>
+                <label className="text-xs font-bold text-muted-foreground">บันทึกพัฒนาการ / กิจกรรมคลาสเรียน (ระบุหรือไม่ระบุก็ได้)</label>
                 <textarea
-                  required
                   rows={3}
                   placeholder="น้องได้ฝึกลงเทคนิคสีอะไร วาดอะไรเพิ่มเติม มีความก้าวหน้าส่วนใดบ้าง..."
                   value={checkInNotes}
