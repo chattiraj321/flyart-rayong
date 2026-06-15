@@ -618,8 +618,8 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                     className="w-full border-2 border-dashed border-[#eae7df] hover:border-primary/50 py-8 rounded-xl flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-all text-muted-foreground hover:text-primary"
                   >
                     <Camera className="w-8 h-8 mb-2" />
-                    <span className="text-xs font-bold">ถ่ายภาพผลงานเด็ก หรืออัปโหลดรูป</span>
-                    <span className="text-[10px] text-muted-foreground/75 mt-0.5">ระบบจะเปิดกล้องโทรศัพท์อัตโนมัติบนมือถือ</span>
+                    <span className="text-xs font-bold">เลือกภาพผลงานเด็ก หรือถ่ายรูป</span>
+                    <span className="text-[10px] text-muted-foreground/75 mt-0.5">สามารถเลือกไฟล์จากแกลเลอรีหรือเปิดกล้องถ่ายภาพได้</span>
                   </button>
                 )}
                 
@@ -627,7 +627,6 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                   type="file"
                   ref={fileInputRef}
                   accept="image/*"
-                  capture="environment" // Forces back-camera on mobile devices!
                   onChange={handleImageChange}
                   className="hidden"
                 />
