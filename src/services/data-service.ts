@@ -23,6 +23,64 @@ export interface Student {
   course_type?: 'once' | '3months' | '5months' | '1year';
   start_date?: string; // YYYY-MM-DD
   expiration_month?: string; // e.g. "ตุลาคม 2569" or "2026-10"
+  // UI-only packed properties
+  avatar_url?: string;
+  course_category?: 'basic' | 'ai';
+}
+
+// Helpers to pack and unpack custom metadata in the notes field
+export function unpackStudentNotes(student: Student): Student {
+  if (!student) return student;
+  let notes = student.notes || '';
+  let avatar_url = '';
+  let course_category: 'basic' | 'ai' = 'basic';
+
+  const avatarMatch = notes.match(/\[avatar:(.*?)\]/);
+  if (avatarMatch) {
+    avatar_url = avatarMatch[1];
+    notes = notes.replace(avatarMatch[0], '');
+  }
+
+  const categoryMatch = notes.match(/\[category:(basic|ai)\]/);
+  if (categoryMatch) {
+    course_category = categoryMatch[1] as 'basic' | 'ai';
+    notes = notes.replace(categoryMatch[0], '');
+  }
+
+  notes = notes.replace(/\s+/g, ' ').trim();
+  if (notes.startsWith('|')) notes = notes.slice(1).trim();
+  if (notes.endsWith('|')) notes = notes.slice(0, -1).trim();
+  notes = notes.trim();
+
+  return {
+    ...student,
+    notes,
+    avatar_url: avatar_url || undefined,
+    course_category
+  };
+}
+
+export function packStudentNotes<T extends Partial<Student>>(studentData: T): T {
+  if (!studentData) return studentData;
+  let notes = studentData.notes || '';
+  const avatar_url = studentData.avatar_url || '';
+  const course_category = studentData.course_category || 'basic';
+
+  // Strip existing tags
+  notes = notes.replace(/\[avatar:.*?\]/g, '');
+  notes = notes.replace(/\[category:.*?\]/g, '');
+  notes = notes.trim();
+
+  let tagString = '';
+  if (avatar_url) {
+    tagString += ` [avatar:${avatar_url}]`;
+  }
+  tagString += ` [category:${course_category}]`;
+
+  return {
+    ...studentData,
+    notes: `${notes} |${tagString}`.trim()
+  };
 }
 
 export interface Session {
@@ -102,20 +160,22 @@ export const dataService = {
         .order('name', { ascending: true });
       if (error) throw error;
       return (data as Student[]).map(s => {
-        if (s.course_type === '3months' || (s.notes && s.notes.includes('วันธรรมดา'))) {
-          s.total_lessons = 5;
+        const unpacked = unpackStudentNotes(s);
+        if (unpacked.course_type === '3months' || (unpacked.notes && unpacked.notes.includes('วันธรรมดา'))) {
+          unpacked.total_lessons = 5;
         }
-        return s;
+        return unpacked;
       });
     } else {
       const students = getStorageItem<Student[]>('flyart_students', INITIAL_STUDENTS);
       return students
         .filter(s => s.name && s.name.trim() !== '' && s.name.trim() !== '-' && s.nickname && s.nickname.trim() !== '' && s.nickname.trim() !== '-')
         .map(s => {
-          if (s.course_type === '3months' || (s.notes && s.notes.includes('วันธรรมดา'))) {
-            s.total_lessons = 5;
+          const unpacked = unpackStudentNotes(s);
+          if (unpacked.course_type === '3months' || (unpacked.notes && unpacked.notes.includes('วันธรรมดา'))) {
+            unpacked.total_lessons = 5;
           }
-          return s;
+          return unpacked;
         });
     }
   },
@@ -130,10 +190,12 @@ export const dataService = {
       if (error) return null;
       const student = data as Student;
       if (!student.name || student.name.trim() === '' || student.name.trim() === '-' || !student.nickname || student.nickname.trim() === '' || student.nickname.trim() === '-') return null;
-      if (student.course_type === '3months' || (student.notes && student.notes.includes('วันธรรมดา'))) {
-        student.total_lessons = 5;
+      
+      const unpacked = unpackStudentNotes(student);
+      if (unpacked.course_type === '3months' || (unpacked.notes && unpacked.notes.includes('วันธรรมดา'))) {
+        unpacked.total_lessons = 5;
       }
-      return student;
+      return unpacked;
     } else {
       const students = await this.getStudents();
       return students.find((s) => s.id === id) || null;
@@ -141,45 +203,63 @@ export const dataService = {
   },
 
   async addStudent(studentData: Omit<Student, 'id' | 'created_at'>): Promise<Student> {
+    const packed = packStudentNotes(studentData);
+    const { avatar_url, course_category, ...dbPayload } = packed as any;
+    
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('students')
-        .insert([studentData])
+        .insert([dbPayload])
         .select()
         .single();
       if (error) throw error;
-      return data as Student;
+      return unpackStudentNotes(data as Student);
     } else {
       const students = await this.getStudents();
       const newStudent: Student = {
-        ...studentData,
+        ...packed,
         id: `student-${Date.now()}`,
         created_at: new Date().toISOString(),
-      };
+      } as Student;
       students.push(newStudent);
       setStorageItem('flyart_students', students);
-      return newStudent;
+      return unpackStudentNotes(newStudent);
     }
   },
 
   async updateStudent(id: string, updates: Partial<Student>): Promise<Student> {
+    const existing = await this.getStudentById(id);
+    const merged = {
+      notes: updates.notes !== undefined ? updates.notes : (existing?.notes || ''),
+      avatar_url: updates.avatar_url !== undefined ? updates.avatar_url : (existing?.avatar_url || ''),
+      course_category: updates.course_category !== undefined ? updates.course_category : (existing?.course_category || 'basic')
+    };
+
+    const packedUpdates = packStudentNotes({
+      ...updates,
+      ...merged
+    });
+
+    const { avatar_url, course_category, ...dbPayload } = packedUpdates as any;
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('students')
-        .update(updates)
+        .update(dbPayload)
         .eq('id', id)
         .select()
         .single();
       if (error) throw error;
-      return data as Student;
+      return unpackStudentNotes(data as Student);
     } else {
-      const students = await this.getStudents();
+      const students = getStorageItem<Student[]>('flyart_students', INITIAL_STUDENTS);
       const index = students.findIndex((s) => s.id === id);
       if (index === -1) throw new Error('Student not found');
-      const updated = { ...students[index], ...updates };
+      
+      const updated = { ...students[index], ...packedUpdates } as Student;
       students[index] = updated;
       setStorageItem('flyart_students', students);
-      return updated;
+      return unpackStudentNotes(updated);
     }
   },
 
@@ -229,7 +309,7 @@ export const dataService = {
     }
   },
 
-  async addSession(sessionData: Omit<Session, 'id' | 'created_at'>): Promise<Session> {
+  async addSession(sessionData: Omit<Session, 'id' | 'created_at'>, skipIncrement: boolean = false): Promise<Session> {
     if (isSupabaseConfigured && supabase) {
       // 1. Log session in DB
       const { data, error } = await supabase
@@ -239,16 +319,18 @@ export const dataService = {
         .single();
       if (error) throw error;
 
-      // 2. Auto-increment completed lessons
-      const student = await this.getStudentById(sessionData.student_id);
-      if (student) {
-        const currentCompleted = student.completed_lessons;
-        const total = student.total_lessons;
-        const nextCompleted = Math.min(total, currentCompleted + 1);
-        await this.updateStudent(sessionData.student_id, {
-          completed_lessons: nextCompleted,
-          status: nextCompleted >= total ? 'inactive' : student.status
-        });
+      // 2. Auto-increment completed lessons if NOT skipIncrement
+      if (!skipIncrement) {
+        const student = await this.getStudentById(sessionData.student_id);
+        if (student) {
+          const currentCompleted = student.completed_lessons;
+          const total = student.total_lessons;
+          const nextCompleted = Math.min(total, currentCompleted + 1);
+          await this.updateStudent(sessionData.student_id, {
+            completed_lessons: nextCompleted,
+            status: nextCompleted >= total ? 'inactive' : student.status
+          });
+        }
       }
       return data as Session;
     } else {
@@ -261,16 +343,18 @@ export const dataService = {
       sessions.push(newSession);
       setStorageItem('flyart_sessions', sessions);
 
-      // Auto-increment completed lessons for local storage mode too
-      const student = await this.getStudentById(sessionData.student_id);
-      if (student) {
-        const currentCompleted = student.completed_lessons;
-        const total = student.total_lessons;
-        const nextCompleted = Math.min(total, currentCompleted + 1);
-        await this.updateStudent(sessionData.student_id, {
-          completed_lessons: nextCompleted,
-          status: nextCompleted >= total ? 'inactive' : student.status
-        });
+      // Auto-increment completed lessons if NOT skipIncrement
+      if (!skipIncrement) {
+        const student = await this.getStudentById(sessionData.student_id);
+        if (student) {
+          const currentCompleted = student.completed_lessons;
+          const total = student.total_lessons;
+          const nextCompleted = Math.min(total, currentCompleted + 1);
+          await this.updateStudent(sessionData.student_id, {
+            completed_lessons: nextCompleted,
+            status: nextCompleted >= total ? 'inactive' : student.status
+          });
+        }
       }
 
       return newSession;

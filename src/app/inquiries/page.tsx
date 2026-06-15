@@ -68,6 +68,7 @@ export default function InquiriesPage() {
         completed_lessons: 0,
         status: 'active',
         notes: initialNotes,
+        course_category: 'basic',
       });
 
       // 2. Update Inquiry status to imported

@@ -46,6 +46,7 @@ function StudentDirectoryContent() {
   const [courseType, setCourseType] = useState<'once' | '3months' | '5months' | '1year'>('once');
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [expirationMonth, setExpirationMonth] = useState('');
+  const [courseCategory, setCourseCategory] = useState<'basic' | 'ai'>('basic');
 
   // Load students
   const loadStudents = async () => {
@@ -104,6 +105,7 @@ function StudentDirectoryContent() {
         address: address.trim() || undefined,
         student_phone: studentPhone.trim() || undefined,
         course_type: courseType,
+        course_category: courseCategory,
         start_date: startDate || undefined,
         expiration_month: expirationMonth.trim() || undefined,
       });
@@ -125,6 +127,7 @@ function StudentDirectoryContent() {
       setCourseType('once');
       setStartDate(new Date().toISOString().split('T')[0]);
       setExpirationMonth('');
+      setCourseCategory('basic');
 
       handleCloseForm();
       loadStudents();
@@ -244,33 +247,54 @@ function StudentDirectoryContent() {
                 className="bg-white border border-[#eae7df] rounded-2xl p-4 space-y-3.5 hover:shadow-sm transition-all duration-200 shadow-sm"
               >
                 {/* Header info */}
-                <div className="flex justify-between items-start">
-                  <Link href={`/students/${student.id}`} className="group space-y-0.5 flex-1">
-                    <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
-                      {student.name}
-                      {student.nickname && (
-                        <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans">
-                          {student.nickname}
-                        </span>
+                <div className="flex gap-3 items-center">
+                  <Link href={`/students/${student.id}`} className="shrink-0">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-[#eae7df]">
+                      {student.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={student.avatar_url} alt={student.name} className="object-cover w-full h-full" />
+                      ) : (
+                        <span className="text-sm font-bold text-primary">{student.nickname ? student.nickname[0] : student.name[0]}</span>
                       )}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground">
-                      ลงทะเบียน: {new Date(student.created_at).toLocaleDateString('th-TH')}
-                    </p>
+                    </div>
                   </Link>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    student.status === 'active' 
-                      ? 'bg-secondary/15 text-secondary' 
-                      : 'bg-primary/15 text-primary'
-                  }`}>
-                    {student.status === 'active' ? 'กำลังเรียน' : 'พักเรียน/จบคอร์ส'}
-                  </span>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <Link href={`/students/${student.id}`} className="group space-y-0.5 block min-w-0">
+                        <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 truncate">
+                          {student.name}
+                          {student.nickname && (
+                            <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans shrink-0">
+                              {student.nickname}
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground">
+                          ลงทะเบียน: {new Date(student.created_at).toLocaleDateString('th-TH')}
+                        </p>
+                      </Link>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                        student.status === 'active' 
+                          ? 'bg-secondary/15 text-secondary' 
+                          : 'bg-primary/15 text-primary'
+                      }`}>
+                        {student.status === 'active' ? 'กำลังเรียน' : 'พักเรียน/จบคอร์ส'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-muted-foreground">ความคืบหน้าของคอร์ส</span>
+                    <span className="text-muted-foreground">
+                      คอร์ส: {student.course_type === 'once' ? 'รายครั้ง' :
+                             student.course_type === '3months' ? 'ราย 3 เดือน' :
+                             student.course_type === '5months' ? 'ราย 5 เดือน' :
+                             student.course_type === '1year' ? 'ราย 1 ปี' : 'รายครั้ง'}
+                      {student.course_category === 'ai' ? ' (หลักสูตรเสริม AI)' : ' (หลักสูตรพื้นฐาน)'}
+                    </span>
                     <span className="text-foreground font-sans">
                       {student.completed_lessons} / {student.total_lessons} ครั้ง ({completionRate}%)
                     </span>
@@ -546,6 +570,18 @@ function StudentDirectoryContent() {
                       className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground">ประเภทหลักสูตรย่อย</label>
+                  <select
+                    value={courseCategory}
+                    onChange={(e) => setCourseCategory(e.target.value as any)}
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="basic">หลักสูตรพื้นฐาน</option>
+                    <option value="ai">หลักสูตรเสริม AI</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

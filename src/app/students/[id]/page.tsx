@@ -7,6 +7,7 @@ import {
   ArrowLeft, 
   Calendar, 
   Camera, 
+  PlusCircle,
   Check, 
   Trash2, 
   X, 
@@ -60,6 +61,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
   const [editCourseType, setEditCourseType] = useState<'once' | '3months' | '5months' | '1year'>('once');
   const [editStartDate, setEditStartDate] = useState('');
   const [editExpirationMonth, setEditExpirationMonth] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [editCourseCategory, setEditCourseCategory] = useState<'basic' | 'ai'>('basic');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Check-In Form State
+  const [isPastRecord, setIsPastRecord] = useState(false);
 
   // Fetch student info & sessions
   const loadData = async () => {
@@ -92,6 +101,10 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       setEditCourseType(s.course_type || 'once');
       setEditStartDate(s.start_date || '');
       setEditExpirationMonth(s.expiration_month || '');
+      setEditAvatarUrl(s.avatar_url || '');
+      setAvatarPreview(s.avatar_url || null);
+      setAvatarFile(null);
+      setEditCourseCategory(s.course_category || 'basic');
 
       // Load sessions
       const studentSessions = await dataService.getSessions(studentId);
@@ -134,12 +147,13 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
         date: checkInDate,
         notes: checkInNotes.trim(),
         artwork_url: imageUrl,
-      });
+      }, isPastRecord);
 
-      // Clear Form & Close
+      // Reset
       setCheckInNotes('');
       setCheckInFile(null);
       setPreviewImage(null);
+      setIsPastRecord(false);
       setShowCheckInModal(false);
       
       // Refresh Data
@@ -157,6 +171,12 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
     if (!student) return;
 
     try {
+      setUploading(true);
+      let finalAvatarUrl = editAvatarUrl;
+      if (avatarFile) {
+        finalAvatarUrl = await dataService.uploadArtwork(avatarFile);
+      }
+
       await dataService.updateStudent(studentId, {
         name: editName,
         nickname: editNickname.trim(),
@@ -176,12 +196,17 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
         course_type: editCourseType,
         start_date: editStartDate || undefined,
         expiration_month: editExpirationMonth.trim() || undefined,
+        avatar_url: finalAvatarUrl || undefined,
+        course_category: editCourseCategory,
       });
 
+      setAvatarFile(null);
       setShowEditModal(false);
       await loadData();
     } catch (err) {
       console.error('Failed to update student:', err);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -265,27 +290,40 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
 
       {/* Student Profile Card */}
       <div className="bg-white border border-[#eae7df] rounded-2xl p-5 space-y-4 shadow-sm">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <h2 className="text-xl font-bold text-foreground font-serif flex items-center gap-2">
-              {student.name}
-              {student.nickname && (
-                <span className="text-sm font-medium text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg font-sans">
-                  {student.nickname}
-                </span>
-              )}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              ลงทะเบียนเมื่อ {new Date(student.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+        <div className="flex gap-4 items-center border-b border-[#eae7df]/40 pb-4">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-[#eae7df] shrink-0">
+            {student.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={student.avatar_url} alt={student.name} className="object-cover w-full h-full" />
+            ) : (
+              <span className="text-xl font-bold text-primary">{student.nickname ? student.nickname[0] : student.name[0]}</span>
+            )}
           </div>
-          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-            student.status === 'active' 
-              ? 'bg-secondary/15 text-secondary' 
-              : 'bg-primary/15 text-primary'
-          }`}>
-            {student.status === 'active' ? 'กำลังเรียนอยู่' : 'พักคอร์ส/จบคอร์ส'}
-          </span>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <div className="space-y-0.5">
+                <h2 className="text-xl font-bold text-foreground font-serif flex items-center gap-2">
+                  {student.name}
+                  {student.nickname && (
+                    <span className="text-sm font-medium text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg font-sans">
+                      {student.nickname}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  ลงทะเบียนเมื่อ {new Date(student.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                student.status === 'active' 
+                  ? 'bg-secondary/15 text-secondary' 
+                  : 'bg-primary/15 text-primary'
+              }`}>
+                {student.status === 'active' ? 'กำลังเรียนอยู่' : 'พักคอร์ส/จบคอร์ส'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* New Attributes Sub-grids */}
@@ -327,6 +365,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                student.course_type === '3months' ? 'ราย 3 เดือน' :
                student.course_type === '5months' ? 'ราย 5 เดือน' :
                student.course_type === '1year' ? 'ราย 1 ปี' : 'รายครั้ง'}
+              {student.course_category === 'ai' ? ' (หลักสูตรเสริม AI)' : ' (หลักสูตรพื้นฐาน)'}
             </span>
           </div>
           <div>
@@ -409,13 +448,29 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
           )}
         </div>
 
-        {/* Check-In Button */}
-        <button
-          onClick={() => setShowCheckInModal(true)}
-          className="w-full bg-primary hover:bg-primary/95 text-white py-3.5 rounded-2xl font-semibold text-sm shadow-md shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 mt-2"
-        >
-          <Camera className="w-4.5 h-4.5" /> เช็คอินชั่วโมงเรียนวันนี้
-        </button>
+        {/* Check-In Buttons */}
+        <div className="flex flex-col gap-2.5 mt-3.5">
+          <button
+            onClick={() => {
+              setIsPastRecord(false);
+              setShowCheckInModal(true);
+            }}
+            className="w-full bg-primary hover:bg-primary/95 text-white py-3.5 rounded-2xl font-semibold text-xs active:scale-98 transition-all flex items-center justify-center gap-2 shadow-md shadow-primary/15"
+          >
+            <Camera className="w-4.5 h-4.5" /> เช็คอินชั่วโมงเรียนวันนี้
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setIsPastRecord(true);
+              setShowCheckInModal(true);
+            }}
+            className="w-full bg-slate-50 border border-[#eae7df] hover:bg-slate-100 text-muted-foreground py-2.5 rounded-2xl font-semibold text-xs active:scale-98 transition-all flex items-center justify-center gap-1.5"
+          >
+            <PlusCircle className="w-4 h-4 text-primary" /> เพิ่มรูปภาพ / บันทึกผลงานย้อนหลัง
+          </button>
+        </div>
       </div>
 
       {/* Timeline Section */}
@@ -523,6 +578,20 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                 />
               </div>
 
+              {/* Past Record Option Checkbox */}
+              <div className="flex items-center gap-2 py-2 px-3 bg-amber-50/40 border border-amber-100/40 rounded-xl">
+                <input
+                  type="checkbox"
+                  id="pastRecordCheckbox"
+                  checked={isPastRecord}
+                  onChange={(e) => setIsPastRecord(e.target.checked)}
+                  className="w-4 h-4 rounded accent-primary text-primary border-[#eae7df] cursor-pointer"
+                />
+                <label htmlFor="pastRecordCheckbox" className="text-xs font-bold text-foreground cursor-pointer select-none">
+                  บันทึกเป็นผลงานย้อนหลัง (ไม่หักครั้งเรียนใหม่)
+                </label>
+              </div>
+
               {/* Drawing Photo Uploader */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-muted-foreground">อัปโหลดผลงานศิลปะวันนี้</label>
@@ -625,6 +694,53 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               <div className="space-y-3">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">1. ข้อมูลส่วนตัวนักเรียน</span>
                 
+                {/* Face photo avatar uploader */}
+                <div className="flex flex-col items-center py-2">
+                  <div 
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="relative w-20 h-20 rounded-full overflow-hidden bg-primary/10 border-2 border-dashed border-[#eae7df] hover:border-primary flex items-center justify-center cursor-pointer group transition-all"
+                  >
+                    {avatarPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarPreview} alt="Avatar Preview" className="object-cover w-full h-full" />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground text-[10px] font-bold">
+                        <Camera className="w-5 h-5 mb-0.5 text-muted-foreground/60" />
+                        <span>เพิ่มรูปเด็ก</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[9px] font-bold transition-all">
+                      เปลี่ยนรูป
+                    </div>
+                  </div>
+                  <input
+                    type="file"
+                    ref={avatarInputRef}
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setAvatarFile(file);
+                        setAvatarPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  {avatarPreview && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                        setEditAvatarUrl('');
+                      }}
+                      className="text-[10px] text-red-500 font-bold mt-1.5 hover:underline"
+                    >
+                      ลบรูปโปรไฟล์
+                    </button>
+                  )}
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน *</label>
                   <input
@@ -788,6 +904,18 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                       className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground">ประเภทหลักสูตรย่อย</label>
+                  <select
+                    value={editCourseCategory}
+                    onChange={(e) => setEditCourseCategory(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                  >
+                    <option value="basic">หลักสูตรพื้นฐาน</option>
+                    <option value="ai">หลักสูตรเสริม AI</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
