@@ -139,7 +139,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       let imageUrl = '';
       
       if (checkInFile) {
-        imageUrl = await dataService.uploadArtwork(checkInFile);
+        try {
+          imageUrl = await dataService.uploadArtwork(checkInFile);
+        } catch (uploadErr: any) {
+          console.error('Upload artwork failed:', uploadErr);
+          alert(`ไม่สามารถอัปโหลดรูปภาพผลงานได้: เกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคำแนะนำในการแก้ไข:\n1. กรุณาตรวจสอบว่าใน Supabase Dashboard ของคุณ ได้สร้าง Bucket ชื่อ "artworks" แล้วหรือยัง\n2. ตั้งค่า Bucket "artworks" ให้เป็น Public (สาธารณะ)\n3. เพิ่ม Policy ในหน้า Storage เพื่ออนุญาตให้บุคคลทั่วไปสามารถอัปโหลดรูปได้ (Insert/Upload policy)`);
+          setUploading(false);
+          return;
+        }
       }
 
       await dataService.addSession({
@@ -158,8 +165,9 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       
       // Refresh Data
       await loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Check-in failed:', err);
+      alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูลเช็คอิน: ${err?.message || String(err)}`);
     } finally {
       setUploading(false);
     }
@@ -174,7 +182,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       setUploading(true);
       let finalAvatarUrl = editAvatarUrl;
       if (avatarFile) {
-        finalAvatarUrl = await dataService.uploadArtwork(avatarFile);
+        try {
+          finalAvatarUrl = await dataService.uploadArtwork(avatarFile);
+        } catch (uploadErr: any) {
+          console.error('Upload avatar failed:', uploadErr);
+          alert(`ไม่สามารถอัปโหลดรูปโปรไฟล์ได้: เกิดข้อผิดพลาดกับระบบเก็บข้อมูล (Supabase Storage)\n\nรายละเอียด: ${uploadErr?.message || String(uploadErr)}\n\nคำแนะนำในการแก้ไข:\n1. กรุณาตรวจสอบว่าใน Supabase Dashboard ของคุณ ได้สร้าง Bucket ชื่อ "artworks" แล้วหรือยัง\n2. ตั้งค่า Bucket "artworks" ให้เป็น Public (สาธารณะ)\n3. เพิ่ม Policy ในหน้า Storage เพื่ออนุญาตให้บุคคลทั่วไปสามารถอัปโหลดรูปได้ (Insert/Upload policy)`);
+          setUploading(false);
+          return;
+        }
       }
 
       await dataService.updateStudent(studentId, {
@@ -203,8 +218,9 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       setAvatarFile(null);
       setShowEditModal(false);
       await loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update student:', err);
+      alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูลประวัตินักเรียน: ${err?.message || String(err)}`);
     } finally {
       setUploading(false);
     }
