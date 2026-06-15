@@ -88,17 +88,20 @@ const setStorageItem = <T>(key: string, data: T): void => {
 export const dataService = {
   isSupabase: isSupabaseConfigured,
 
-  // 1. STUDENTS
   async getStudents(): Promise<Student[]> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('students')
         .select('*')
+        .not('name', 'is', null)
+        .neq('name', '')
+        .neq('name', '-')
         .order('name', { ascending: true });
       if (error) throw error;
       return data as Student[];
     } else {
-      return getStorageItem<Student[]>('flyart_students', INITIAL_STUDENTS);
+      const students = getStorageItem<Student[]>('flyart_students', INITIAL_STUDENTS);
+      return students.filter(s => s.name && s.name.trim() !== '' && s.name.trim() !== '-');
     }
   },
 
@@ -110,7 +113,9 @@ export const dataService = {
         .eq('id', id)
         .single();
       if (error) return null;
-      return data as Student;
+      const student = data as Student;
+      if (!student.name || student.name.trim() === '' || student.name.trim() === '-') return null;
+      return student;
     } else {
       const students = await this.getStudents();
       return students.find((s) => s.id === id) || null;
