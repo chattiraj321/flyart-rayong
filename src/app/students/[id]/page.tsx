@@ -51,6 +51,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
   const [editCompletedLessons, setEditCompletedLessons] = useState(0);
   const [editStatus, setEditStatus] = useState<'active' | 'inactive'>('active');
   const [editNotes, setEditNotes] = useState('');
+  // New Edit Form States
+  const [editBirthDate, setEditBirthDate] = useState('');
+  const [editGrade, setEditGrade] = useState('');
+  const [editSchool, setEditSchool] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editStudentPhone, setEditStudentPhone] = useState('');
+  const [editCourseType, setEditCourseType] = useState<'once' | '3months' | '5months' | '1year'>('once');
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editExpirationMonth, setEditExpirationMonth] = useState('');
 
   // Fetch student info & sessions
   const loadData = async () => {
@@ -74,6 +83,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
       setEditCompletedLessons(s.completed_lessons);
       setEditStatus(s.status);
       setEditNotes(s.notes);
+      // Populate new edit defaults
+      setEditBirthDate(s.birth_date || '');
+      setEditGrade(s.grade || '');
+      setEditSchool(s.school || '');
+      setEditAddress(s.address || '');
+      setEditStudentPhone(s.student_phone || '');
+      setEditCourseType(s.course_type || 'once');
+      setEditStartDate(s.start_date || '');
+      setEditExpirationMonth(s.expiration_month || '');
 
       // Load sessions
       const studentSessions = await dataService.getSessions(studentId);
@@ -150,6 +168,14 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
         completed_lessons: Number(editCompletedLessons) || 0,
         status: editStatus,
         notes: editNotes.trim(),
+        birth_date: editBirthDate || undefined,
+        grade: editGrade.trim() || undefined,
+        school: editSchool.trim() || undefined,
+        address: editAddress.trim() || undefined,
+        student_phone: editStudentPhone.trim() || undefined,
+        course_type: editCourseType,
+        start_date: editStartDate || undefined,
+        expiration_month: editExpirationMonth.trim() || undefined,
       });
 
       setShowEditModal(false);
@@ -171,6 +197,22 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
     } catch (err) {
       console.error('Failed to delete session:', err);
     }
+  };
+
+  // Helper to calculate age
+  const getAgeString = (birthDateStr?: string) => {
+    if (!birthDateStr) return 'ไม่ได้ระบุ';
+    const birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) return 'ไม่ได้ระบุ';
+    const today = new Date();
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+      years--;
+      months += 12;
+    }
+    if (years === 0) return `${months} เดือน`;
+    return `${years} ปี ${months > 0 ? `${months} เดือน` : ''}`;
   };
 
   if (loading) {
@@ -229,6 +271,56 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
           }`}>
             {student.status === 'active' ? 'กำลังเรียนอยู่' : 'พักคอร์ส/จบคอร์ส'}
           </span>
+        </div>
+
+        {/* New Attributes Sub-grids */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs border-t border-[#eae7df] pt-3 pb-1">
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">วันเกิด / อายุ</span>
+            <span className="font-semibold text-foreground block">
+              {student.birth_date 
+                ? `${new Date(student.birth_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })} (${getAgeString(student.birth_date)})` 
+                : 'ไม่ได้ระบุ'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">ระดับชั้น / โรงเรียน</span>
+            <span className="font-semibold text-foreground truncate block">
+              {student.grade || 'ไม่ระบุ'} / {student.school || 'ไม่ระบุ'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">เบอร์โทรศัพท์นักเรียน</span>
+            <span className="font-semibold text-foreground font-sans block">
+              {student.student_phone ? (
+                <a href={`tel:${student.student_phone}`} className="underline hover:text-primary">{student.student_phone}</a>
+              ) : 'ไม่ได้ระบุ'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">ที่อยู่</span>
+            <span className="font-semibold text-foreground truncate block">{student.address || 'ไม่ได้ระบุ'}</span>
+          </div>
+        </div>
+
+        {/* Course Package Details Sub-grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs border-t border-[#eae7df] pt-3 pb-1 bg-slate-50/50 p-3 rounded-2xl border border-[#eae7df]/40">
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">ประเภทคอร์ส/หลักสูตร</span>
+            <span className="font-bold text-primary block">
+              {student.course_type === 'once' ? 'รายครั้ง' :
+               student.course_type === '3months' ? 'ราย 3 เดือน' :
+               student.course_type === '5months' ? 'ราย 5 เดือน' :
+               student.course_type === '1year' ? 'ราย 1 ปี' : 'รายครั้ง'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase block mb-0.5">เริ่มเรียน & วันหมดอายุ</span>
+            <span className="font-semibold text-foreground block">
+              {student.start_date ? new Date(student.start_date).toLocaleDateString('th-TH') : 'ไม่ได้ระบุ'} 
+              {student.expiration_month ? ` ถึง ${student.expiration_month}` : ''}
+            </span>
+          </div>
         </div>
 
         {/* Notes if present */}
@@ -513,118 +605,213 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              {/* Name */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน</label>
-                <input
-                  type="text"
-                  required
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
-                />
-              </div>
-
-              {/* Nickname & Status */}
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleEditSubmit} className="space-y-5">
+              {/* SECTION 1: Personal Info */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">1. ข้อมูลส่วนตัวนักเรียน</span>
+                
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน *</label>
                   <input
                     type="text"
-                    value={editNickname}
-                    onChange={(e) => setEditNickname(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">สถานะแพ็กเกจ</label>
-                  <select
-                    value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value as 'active' | 'inactive')}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
-                  >
-                    <option value="active">กำลังเรียนอยู่</option>
-                    <option value="inactive">พักคอร์ส/จบคอร์ส</option>
-                  </select>
-                </div>
-              </div>
 
-              {/* Completed / Total Lessons */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">คลาสที่เรียนเสร็จแล้ว (ครั้ง)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max={editTotalLessons}
-                    value={editCompletedLessons}
-                    onChange={(e) => setEditCompletedLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
+                    <input
+                      type="text"
+                      value={editNickname}
+                      onChange={(e) => setEditNickname(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">สถานะของนักเรียน</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as 'active' | 'inactive')}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    >
+                      <option value="active">กำลังเรียนอยู่ (Active)</option>
+                      <option value="inactive">พักคอร์ส/จบคอร์ส</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">จำนวนคลาสเรียนทั้งหมดในแพ็กเกจ (ครั้ง)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={editTotalLessons}
-                    onChange={(e) => setEditTotalLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
-                  />
-                </div>
-              </div>
 
-              {/* Parent Phone & Name */}
-              <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">วันเดือนปีเกิด</label>
+                    <input
+                      type="date"
+                      value={editBirthDate}
+                      onChange={(e) => setEditBirthDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">เบอร์โทรศัพท์นักเรียน</label>
+                    <input
+                      type="tel"
+                      value={editStudentPhone}
+                      onChange={(e) => setEditStudentPhone(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ระดับชั้น</label>
+                    <input
+                      type="text"
+                      value={editGrade}
+                      onChange={(e) => setEditGrade(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">โรงเรียน</label>
+                    <input
+                      type="text"
+                      value={editSchool}
+                      onChange={(e) => setEditSchool(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
+                  <label className="text-xs font-bold text-muted-foreground">ที่อยู่</label>
                   <input
                     type="text"
-                    value={editParentName}
-                    onChange={(e) => setEditParentName(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">เบอร์โทรผู้ปกครอง</label>
-                  <input
-                    type="tel"
-                    value={editParentPhone}
-                    onChange={(e) => setEditParentPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none"
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Social Channels */}
-              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#eae7df]/50">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80]">ไอดีสำหรับการติดต่อ (ไม่มี @)</span>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID</label>
+              {/* SECTION 2: Parent Info */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">2. ข้อมูลติดต่อผู้ปกครอง</span>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
+                    <input
+                      type="text"
+                      value={editParentName}
+                      onChange={(e) => setEditParentName(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">เบอร์โทรผู้ปกครอง</label>
+                    <input
+                      type="tel"
+                      value={editParentPhone}
+                      onChange={(e) => setEditParentPhone(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">Line ID (ไม่มี @)</label>
                     <input
                       type="text"
                       value={editLineId}
                       onChange={(e) => setEditLineId(e.target.value)}
-                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none"
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Facebook Username</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">Facebook Username</label>
                     <input
                       type="text"
                       value={editFacebook}
                       onChange={(e) => setEditFacebook(e.target.value)}
-                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none"
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Studio Notes */}
+              {/* SECTION 3: Course & Package */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">3. ข้อมูลหลักสูตร / คลาสเรียน</span>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">หลักสูตรสมัครเรียน</label>
+                    <select
+                      value={editCourseType}
+                      onChange={(e) => setEditCourseType(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    >
+                      <option value="once">รายครั้ง</option>
+                      <option value="3months">ราย 3 เดือน</option>
+                      <option value="5months">ราย 5 เดือน</option>
+                      <option value="1year">ราย 1 ปี</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">คลาสที่เรียนเสร็จแล้ว (ครั้ง)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={editTotalLessons}
+                      value={editCompletedLessons}
+                      onChange={(e) => setEditCompletedLessons(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">จำนวนคลาสทั้งหมด (ครั้ง)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editTotalLessons}
+                      onChange={(e) => setEditTotalLessons(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">วันที่เริ่มสมัคร</label>
+                    <input
+                      type="date"
+                      value={editStartDate}
+                      onChange={(e) => setEditStartDate(e.target.value)}
+                      className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground">เดือนที่หมดอายุ</label>
+                  <input
+                    type="text"
+                    placeholder="เช่น ตุลาคม 2569"
+                    value={editExpirationMonth}
+                    onChange={(e) => setEditExpirationMonth(e.target.value)}
+                    className="w-full bg-slate-50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* SECTION 4: Notes */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">บันทึกข้อเสนอแนะคลาสศิลปะเพิ่มเติม</label>
+                <label className="text-xs font-bold text-muted-foreground">บันทึกความสนใจหรือข้อแนะนำเพิ่มเติม</label>
                 <textarea
                   rows={2}
                   value={editNotes}
@@ -636,7 +823,7 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/95 text-white py-3 rounded-xl font-semibold text-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-2"
+                className="w-full bg-primary hover:bg-primary/95 text-white py-3.5 rounded-xl font-semibold text-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-2"
               >
                 <Check className="w-4.5 h-4.5" /> บันทึกข้อมูลที่แก้ไข
               </button>

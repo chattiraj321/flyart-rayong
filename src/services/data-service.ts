@@ -14,6 +14,15 @@ export interface Student {
   status: 'active' | 'inactive';
   notes: string;
   created_at: string;
+  // New Fields
+  birth_date?: string; // YYYY-MM-DD
+  grade?: string;
+  school?: string;
+  address?: string;
+  student_phone?: string;
+  course_type?: 'once' | '3months' | '5months' | '1year';
+  start_date?: string; // YYYY-MM-DD
+  expiration_month?: string; // e.g. "ตุลาคม 2569" or "2026-10"
 }
 
 export interface Session {

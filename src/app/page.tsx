@@ -65,6 +65,52 @@ export default function Dashboard() {
     return s ? (s.nickname || s.name) : 'ไม่พบข้อมูลนักเรียน';
   };
 
+  // Helper: check if birthday is in the current week
+  const isBirthdayThisWeek = (birthDateStr?: string) => {
+    if (!birthDateStr) return false;
+    const birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) return false;
+    
+    const today = new Date();
+    
+    // Get start of this week (Monday)
+    const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday...
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + distanceToMonday);
+    monday.setHours(0, 0, 0, 0);
+    
+    // Get end of this week (Sunday)
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    const yearsToTest = [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1];
+    
+    return yearsToTest.some(year => {
+      const bdayThisYear = new Date(year, birthDate.getMonth(), birthDate.getDate(), 12, 0, 0, 0);
+      return bdayThisYear >= monday && bdayThisYear <= sunday;
+    });
+  };
+
+  // Helper to calculate age
+  const getAgeString = (birthDateStr?: string) => {
+    if (!birthDateStr) return '';
+    const birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) return '';
+    const today = new Date();
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+      years--;
+      months += 12;
+    }
+    if (years === 0) return `${months} เดือน`;
+    return `${years} ปี ${months > 0 ? `${months} เดือน` : ''}`;
+  };
+
+  const birthdayStudents = students.filter(s => s.status === 'active' && isBirthdayThisWeek(s.birth_date));
+
   return (
     <div className="space-y-6 animate-slide-up">
       {/* Header section with brand personality */}
@@ -90,6 +136,29 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          {/* Birthday Banner */}
+          {birthdayStudents.length > 0 && (
+            <div className="bg-[#c95c3f]/10 border border-[#c95c3f]/20 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
+              <span className="text-lg">🎂</span>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wide">สัปดาห์นี้วันเกิดน้องๆ นักเรียน!</h4>
+                <div className="text-xs text-foreground/90 space-y-1 font-semibold">
+                  {birthdayStudents.map(s => {
+                    const dob = s.birth_date ? new Date(s.birth_date) : null;
+                    const dateFormatted = dob ? dob.toLocaleDateString('th-TH', { day: 'numeric', month: 'long' }) : '';
+                    return (
+                      <div key={s.id} className="flex items-center gap-1">
+                        <Link href={`/students/${s.id}`} className="underline hover:text-primary transition-colors">
+                          น้อง{s.nickname || s.name}
+                        </Link>
+                        <span>({dateFormatted} - ครบรอบ {getAgeString(s.birth_date)}) 🎉</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-3 gap-3">
             <Link 

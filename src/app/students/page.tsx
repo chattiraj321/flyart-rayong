@@ -37,6 +37,15 @@ function StudentDirectoryContent() {
   const [facebookUsername, setFacebookUsername] = useState('');
   const [totalLessons, setTotalLessons] = useState(10);
   const [notes, setNotes] = useState('');
+  // New Form Fields
+  const [birthDate, setBirthDate] = useState('');
+  const [grade, setGrade] = useState('');
+  const [school, setSchool] = useState('');
+  const [address, setAddress] = useState('');
+  const [studentPhone, setStudentPhone] = useState('');
+  const [courseType, setCourseType] = useState<'once' | '3months' | '5months' | '1year'>('once');
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [expirationMonth, setExpirationMonth] = useState('');
 
   // Load students
   const loadStudents = async () => {
@@ -89,6 +98,14 @@ function StudentDirectoryContent() {
         completed_lessons: 0,
         status: 'active',
         notes: notes.trim(),
+        birth_date: birthDate || undefined,
+        grade: grade.trim() || undefined,
+        school: school.trim() || undefined,
+        address: address.trim() || undefined,
+        student_phone: studentPhone.trim() || undefined,
+        course_type: courseType,
+        start_date: startDate || undefined,
+        expiration_month: expirationMonth.trim() || undefined,
       });
 
       // Reset Form
@@ -100,6 +117,14 @@ function StudentDirectoryContent() {
       setFacebookUsername('');
       setTotalLessons(10);
       setNotes('');
+      setBirthDate('');
+      setGrade('');
+      setSchool('');
+      setAddress('');
+      setStudentPhone('');
+      setCourseType('once');
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setExpirationMonth('');
 
       handleCloseForm();
       loadStudents();
@@ -355,90 +380,192 @@ function StudentDirectoryContent() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="เช่น เด็กหญิงพิชญา รักดี"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                />
-              </div>
-
-              {/* Nickname & Lessons */}
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* SECTION 1: Personal Info */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">1. ข้อมูลส่วนตัวนักเรียน</span>
+                
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
+                  <label className="text-xs font-bold text-muted-foreground">ชื่อ-นามสกุล นักเรียน *</label>
                   <input
                     type="text"
-                    placeholder="เช่น มินิ"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    required
+                    placeholder="เช่น เด็กหญิงพิชญา รักดี"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">จำนวนชั่วโมง/ครั้งที่สมัคร</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={totalLessons}
-                    onChange={(e) => setTotalLessons(Number(e.target.value))}
-                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ชื่อเล่น</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น มินิ"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">วันเกิด</label>
+                    <input
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ระดับชั้น</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น อ.3 / ป.2"
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">โรงเรียน</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น โรงเรียนวัดบ้านค่าย"
+                      value={school}
+                      onChange={(e) => setSchool(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">เบอร์โทรศัพท์นักเรียน</label>
+                    <input
+                      type="tel"
+                      placeholder="เช่น 089xxxxxxx"
+                      value={studentPhone}
+                      onChange={(e) => setStudentPhone(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ที่อยู่</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น อ.เมือง ระยอง"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Parent Details */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
-                  <input
-                    type="text"
-                    placeholder="เช่น คุณสมศักดิ์"
-                    value={parentName}
-                    onChange={(e) => setParentName(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
+              {/* SECTION 2: Parent Info */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">2. ข้อมูลติดต่อผู้ปกครอง</span>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">ชื่อผู้ปกครอง</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น คุณแม่นก"
+                      value={parentName}
+                      onChange={(e) => setParentName(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">เบอร์โทรผู้ปกครอง *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="เช่น 0812345678"
+                      value={parentPhone}
+                      onChange={(e) => setParentPhone(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">เบอร์โทรติดต่อผู้ปกครอง</label>
-                  <input
-                    type="tel"
-                    placeholder="เช่น 0812345678"
-                    value={parentPhone}
-                    onChange={(e) => setParentPhone(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-              </div>
 
-              {/* Chat Deep Links */}
-              <div className="space-y-3 bg-muted/50 p-3.5 rounded-2xl border border-[#eae7df]/50">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80]">ไอดีสำหรับการติดต่อ (ไม่มี @)</span>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Line ID</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">Line ID (ไม่มี @)</label>
                     <input
                       type="text"
                       placeholder="เช่น mini_mom"
                       value={lineId}
                       onChange={(e) => setLineId(e.target.value)}
-                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-muted-foreground">Facebook Username (สำหรับลิงก์ Messenger)</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">Facebook Username</label>
                     <input
                       type="text"
-                      placeholder="เช่น somsak.rakdee"
+                      placeholder="เช่น somsak.rak"
                       value={facebookUsername}
                       onChange={(e) => setFacebookUsername(e.target.value)}
-                      className="w-full bg-white border border-[#eae7df] rounded-xl py-2 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: Course & Package */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e8a80] block border-b border-[#eae7df] pb-1">3. ข้อมูลหลักสูตร / การสมัครเรียน</span>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">หลักสูตรสมัครเรียน</label>
+                    <select
+                      value={courseType}
+                      onChange={(e) => setCourseType(e.target.value as any)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="once">รายครั้ง</option>
+                      <option value="3months">ราย 3 เดือน</option>
+                      <option value="5months">ราย 5 เดือน</option>
+                      <option value="1year">ราย 1 ปี</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">จำนวนคลาสเรียนทั้งหมด (ครั้ง)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={totalLessons}
+                      onChange={(e) => setTotalLessons(Number(e.target.value))}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">วันที่เริ่มสมัคร</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">เดือนที่หมดอายุ</label>
+                    <input
+                      type="text"
+                      placeholder="เช่น ตุลาคม 2569"
+                      value={expirationMonth}
+                      onChange={(e) => setExpirationMonth(e.target.value)}
+                      className="w-full bg-slate-50/50 border border-[#eae7df] rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 </div>
