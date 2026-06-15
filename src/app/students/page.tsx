@@ -263,11 +263,15 @@ function StudentDirectoryContent() {
                     <div className="flex justify-between items-start">
                       <Link href={`/students/${student.id}`} className="group space-y-0.5 block min-w-0">
                         <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 truncate">
-                          {student.name}
-                          {student.nickname && (
-                            <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans shrink-0">
-                              {student.nickname}
-                            </span>
+                          {student.nickname ? (
+                            <>
+                              น้อง{student.nickname}
+                              <span className="text-xs font-normal text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans shrink-0">
+                                ({student.name})
+                              </span>
+                            </>
+                          ) : (
+                            student.name
                           )}
                         </h3>
                         <p className="text-[10px] text-muted-foreground">

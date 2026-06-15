@@ -303,12 +303,16 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
               <div className="space-y-0.5">
-                <h2 className="text-xl font-bold text-foreground font-serif flex items-center gap-2">
-                  {student.name}
-                  {student.nickname && (
-                    <span className="text-sm font-medium text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg font-sans">
-                      {student.nickname}
-                    </span>
+                <h2 className="text-xl font-bold text-foreground font-serif flex items-center gap-2 flex-wrap">
+                  {student.nickname ? (
+                    <>
+                      น้อง{student.nickname}
+                      <span className="text-sm font-normal text-muted-foreground bg-muted py-0.5 px-2.5 rounded-lg font-sans">
+                        ({student.name})
+                      </span>
+                    </>
+                  ) : (
+                    student.name
                   )}
                 </h2>
                 <p className="text-xs text-muted-foreground">

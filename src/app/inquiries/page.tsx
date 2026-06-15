@@ -184,11 +184,15 @@ export default function InquiriesPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                          {inquiry.student_name}
-                          {inquiry.nickname && (
-                            <span className="text-xs font-medium text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans">
-                              {inquiry.nickname}
-                            </span>
+                          {inquiry.nickname ? (
+                            <>
+                              น้อง{inquiry.nickname}
+                              <span className="text-xs font-normal text-muted-foreground bg-muted py-0.5 px-2 rounded-md font-sans">
+                                ({inquiry.student_name})
+                              </span>
+                            </>
+                          ) : (
+                            inquiry.student_name
                           )}
                         </h3>
                         <p className="text-[10px] text-muted-foreground">
@@ -288,7 +292,7 @@ export default function InquiriesPage() {
                   >
                     <div>
                       <h4 className="font-bold text-foreground/80">
-                        {inquiry.student_name} {inquiry.nickname && `(${inquiry.nickname})`}
+                        {inquiry.nickname ? `น้อง${inquiry.nickname} (${inquiry.student_name})` : inquiry.student_name}
                       </h4>
                       <p className="text-[10px] text-muted-foreground">
                         {inquiry.status === 'imported' ? 'นำเข้ารายชื่อนักเรียนสำเร็จแล้ว' : 'เก็บถาวรประวัติสมัคร'}

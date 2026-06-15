@@ -62,7 +62,8 @@ export default function Dashboard() {
   // Helper to find student name by ID
   const getStudentNickname = (id: string) => {
     const s = students.find(x => x.id === id);
-    return s ? (s.nickname || s.name) : 'ไม่พบข้อมูลนักเรียน';
+    if (!s) return 'ไม่พบข้อมูลนักเรียน';
+    return s.nickname ? `น้อง${s.nickname} (${s.name})` : s.name;
   };
 
   // Helper: check if birthday is in the current week
@@ -124,8 +125,9 @@ export default function Dashboard() {
             ระบบจัดการห้องเรียนสตูดิโอศิลปะ
           </p>
         </div>
-        <div className="bg-primary/10 text-primary p-2.5 rounded-full">
-          <Palette className="w-6 h-6 stroke-[2px]" />
+        <div className="w-11 h-11 rounded-full overflow-hidden border border-[#eae7df] bg-white flex items-center justify-center shrink-0 shadow-xs">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.jpg" alt="Flyart Rayong Logo" className="object-cover w-full h-full" />
         </div>
       </div>
 
@@ -149,7 +151,7 @@ export default function Dashboard() {
                     return (
                       <div key={s.id} className="flex items-center gap-1">
                         <Link href={`/students/${s.id}`} className="underline hover:text-primary transition-colors">
-                          น้อง{s.nickname || s.name}
+                          {s.nickname ? `น้อง${s.nickname} (${s.name})` : s.name}
                         </Link>
                         <span>({dateFormatted} - ครบรอบ {getAgeString(s.birth_date)}) 🎉</span>
                       </div>
