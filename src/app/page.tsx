@@ -1,65 +1,217 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { 
+  Users, 
+  Calendar, 
+  Inbox, 
+  PlusCircle, 
+  ArrowRight, 
+  CheckCircle,
+  Palette,
+  Sparkles
+} from 'lucide-react';
+import { dataService, Student, Session, Inquiry } from '@/services/data-service';
+
+export default function Dashboard() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    async function loadData() {
+      try {
+        const [allStudents, allSessions, allInquiries] = await Promise.all([
+          dataService.getStudents(),
+          dataService.getSessions(),
+          dataService.getInquiries(),
+        ]);
+        setStudents(allStudents);
+        setSessions(allSessions);
+        setInquiries(allInquiries);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Palette className="w-10 h-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground font-medium text-sm">Loading studio workspace...</p>
+      </div>
+    );
+  }
+
+  // Derived statistics
+  const activeStudents = students.filter(s => s.status === 'active').length;
+  const totalSessions = sessions.length;
+  const pendingInquiries = inquiries.filter(i => i.status === 'pending').length;
+
+  // Recent 4 sessions
+  const recentSessions = sessions.slice(0, 4);
+
+  // Helper to find student name by ID
+  const getStudentNickname = (id: string) => {
+    const s = students.find(x => x.id === id);
+    return s ? s.nickname : 'Unknown Student';
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="space-y-6 animate-slide-up">
+      {/* Header section with brand personality */}
+      <div className="flex justify-between items-center border-b border-[#eae7df] pb-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-serif">
+            FlyArt Rayong
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-accent" />
+            Studio Workspace Dashboard
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="bg-primary/10 text-primary p-2.5 rounded-full">
+          <Palette className="w-6 h-6 stroke-[2px]" />
         </div>
-      </main>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Palette className="w-8 h-8 text-primary animate-pulse mb-3" />
+          <p className="text-xs text-muted-foreground">Gathering stats...</p>
+        </div>
+      ) : (
+        <>
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-3 gap-3">
+            <Link 
+              href="/students?filter=active"
+              className="bg-white border border-[#border] p-3.5 rounded-2xl flex flex-col justify-between hover:border-primary/40 transition-all duration-200 shadow-sm"
+            >
+              <div className="bg-[#fcf7f4] text-primary p-1.5 rounded-lg w-fit">
+                <Users className="w-4 h-4" />
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-bold text-foreground tracking-tight">{activeStudents}</span>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Active Students</p>
+              </div>
+            </Link>
+
+            <Link 
+              href="/students"
+              className="bg-white border border-[#border] p-3.5 rounded-2xl flex flex-col justify-between hover:border-primary/40 transition-all duration-200 shadow-sm"
+            >
+              <div className="bg-[#f4f7f5] text-secondary p-1.5 rounded-lg w-fit">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-bold text-foreground tracking-tight">{totalSessions}</span>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Total Sessions</p>
+              </div>
+            </Link>
+
+            <Link 
+              href="/inquiries"
+              className="bg-white border border-[#border] p-3.5 rounded-2xl flex flex-col justify-between hover:border-primary/40 transition-all duration-200 relative shadow-sm"
+            >
+              {pendingInquiries > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary animate-ping" />
+              )}
+              <div className="bg-[#fef9f4] text-accent p-1.5 rounded-lg w-fit">
+                <Inbox className="w-4 h-4" />
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-bold text-foreground tracking-tight">
+                  {pendingInquiries}
+                </span>
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">New Inquiries</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Quick Action Banner */}
+          <div className="bg-[#f4f2ea] border border-[#border]/60 p-4 rounded-2xl flex justify-between items-center shadow-sm">
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-semibold text-foreground">Quick Lesson Attendance</h3>
+              <p className="text-xs text-muted-foreground">Select a student to log today&apos;s art session</p>
+            </div>
+            <Link 
+              href="/students" 
+              className="bg-primary hover:bg-primary/95 text-white p-2.5 rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition-all"
+            >
+              <ArrowRight className="w-4 h-4 stroke-[2.5px]" />
+            </Link>
+          </div>
+
+          {/* Recent Artwork feed */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h2 className="text-sm font-bold tracking-wide uppercase text-muted-foreground/80 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                Recent Check-ins
+              </h2>
+              <Link href="/students" className="text-xs font-semibold text-primary hover:underline flex items-center gap-0.5">
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {recentSessions.length === 0 ? (
+              <div className="border-2 border-dashed border-[#border] rounded-2xl py-8 px-4 text-center">
+                <p className="text-xs text-muted-foreground font-medium">No sessions logged yet.</p>
+                <Link href="/students" className="text-xs text-primary font-bold mt-2 inline-block">
+                  Go to Students to check-in
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {recentSessions.map((session, index) => (
+                  <Link
+                    key={session.id}
+                    href={`/students/${session.student_id}`}
+                    className={`group bg-white border border-[#border] rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col justify-between shadow-sm animate-slide-up delay-${(index + 1) * 100}`}
+                  >
+                    {/* Image frame */}
+                    <div className="relative aspect-square w-full bg-slate-100 overflow-hidden border-b border-[#border]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={session.artwork_url || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=400&auto=format&fit=crop'} 
+                        alt="Student Artwork" 
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    {/* Info */}
+                    <div className="p-3 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-foreground line-clamp-1">
+                          {getStudentNickname(session.student_id)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(session.date).toLocaleDateString('th-TH', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                        {session.notes}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
