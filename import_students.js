@@ -158,20 +158,21 @@ async function main() {
 
   console.log(`Loaded ${rawStudents.length} students from spreadsheet JSON.`);
 
-  // Filter out students who do not have a name
+  // Filter out students who do not have a name or nickname
   const validRawStudents = rawStudents.filter(s => {
     const name = s['ชื่อ-นามสกุล นักเรียน'];
-    return name && String(name).trim() !== '' && String(name).trim() !== '-';
+    const nickname = s['ชื่อเล่น'];
+    return name && String(name).trim() !== '' && String(name).trim() !== '-' &&
+           nickname && String(nickname).trim() !== '' && String(nickname).trim() !== '-';
   });
 
-  console.log(`Filtered out ${rawStudents.length - validRawStudents.length} students without names. Remaining: ${validRawStudents.length} students to import.`);
+  console.log(`Filtered out ${rawStudents.length - validRawStudents.length} students without names or nicknames. Remaining: ${validRawStudents.length} students to import.`);
 
   // Clean and transform students
   const cleanedStudents = validRawStudents.map((s, idx) => {
     const name = String(s['ชื่อ-นามสกุล นักเรียน']).trim();
-    const nickname = s['ชื่อเล่น'] ? String(s['ชื่อเล่น']).trim() : '';
+    const nickname = String(s['ชื่อเล่น']).trim();
     const course = mapCourse(s['หลักสูตร']);
-    const totalLessons = getDefaultTotalLessons(course);
     
     // 2. Parse status
     let status = 'active';
@@ -188,6 +189,14 @@ async function main() {
       notesArr.push(`หมายเหตุ: ${s['หมายเหตุ']}`);
     }
     const notes = notesArr.join(' | ');
+
+    // 3. Determine total lessons limit: "ถ้าเป็น 3 เดือนหรือหมายเหตุวันธรรมดา แสดงผลลิมิต 5 ครั้ง"
+    let totalLessons;
+    if (course === '3months' || notes.includes('วันธรรมดา')) {
+      totalLessons = 5;
+    } else {
+      totalLessons = getDefaultTotalLessons(course);
+    }
 
     return {
       name: name,

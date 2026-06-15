@@ -143,7 +143,7 @@ export default function InquiriesPage() {
             กูเกิลฟอร์ม <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
           </a>
           <a
-            href="https://docs.google.com/spreadsheets"
+            href="https://docs.google.com/spreadsheets/d/1Q_q-iLcVm1UrswQNtjeaDXH0ZjibcHloCba4burB7Lo/edit?gid=0#gid=0"
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 bg-[#107c41]/10 text-[#107c41] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"

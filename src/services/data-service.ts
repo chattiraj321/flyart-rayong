@@ -96,12 +96,27 @@ export const dataService = {
         .not('name', 'is', null)
         .neq('name', '')
         .neq('name', '-')
+        .not('nickname', 'is', null)
+        .neq('nickname', '')
+        .neq('nickname', '-')
         .order('name', { ascending: true });
       if (error) throw error;
-      return data as Student[];
+      return (data as Student[]).map(s => {
+        if (s.course_type === '3months' || (s.notes && s.notes.includes('วันธรรมดา'))) {
+          s.total_lessons = 5;
+        }
+        return s;
+      });
     } else {
       const students = getStorageItem<Student[]>('flyart_students', INITIAL_STUDENTS);
-      return students.filter(s => s.name && s.name.trim() !== '' && s.name.trim() !== '-');
+      return students
+        .filter(s => s.name && s.name.trim() !== '' && s.name.trim() !== '-' && s.nickname && s.nickname.trim() !== '' && s.nickname.trim() !== '-')
+        .map(s => {
+          if (s.course_type === '3months' || (s.notes && s.notes.includes('วันธรรมดา'))) {
+            s.total_lessons = 5;
+          }
+          return s;
+        });
     }
   },
 
@@ -114,7 +129,10 @@ export const dataService = {
         .single();
       if (error) return null;
       const student = data as Student;
-      if (!student.name || student.name.trim() === '' || student.name.trim() === '-') return null;
+      if (!student.name || student.name.trim() === '' || student.name.trim() === '-' || !student.nickname || student.nickname.trim() === '' || student.nickname.trim() === '-') return null;
+      if (student.course_type === '3months' || (student.notes && student.notes.includes('วันธรรมดา'))) {
+        student.total_lessons = 5;
+      }
       return student;
     } else {
       const students = await this.getStudents();
