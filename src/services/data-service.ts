@@ -160,6 +160,32 @@ export const dataService = {
     }
   },
 
+  async deleteStudent(id: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      // Delete student sessions (cascade handles it in database, but doing it explicitly guarantees it)
+      const { error: sessionsError } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('student_id', id);
+      if (sessionsError) throw sessionsError;
+
+      // Delete student record
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    } else {
+      const students = await this.getStudents();
+      const filteredStudents = students.filter((s) => s.id !== id);
+      setStorageItem('flyart_students', filteredStudents);
+
+      const sessions = await this.getSessions();
+      const filteredSessions = sessions.filter((s) => s.student_id !== id);
+      setStorageItem('flyart_sessions', filteredSessions);
+    }
+  },
+
   // 2. SESSIONS / LOGS
   async getSessions(studentId?: string): Promise<Session[]> {
     if (isSupabaseConfigured && supabase) {

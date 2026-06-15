@@ -185,6 +185,21 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
     }
   };
 
+  // Delete Student Entire Record
+  const handleDeleteStudent = async () => {
+    if (!student) return;
+    const confirmDelete = window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบประวัติของ "น้อง${student.nickname || student.name}" ทั้งหมด? การดำเนินการนี้จะลบข้อมูลประวัติเช็คอินและรูปภาพผลงานทั้งหมดถาวรและไม่สามารถกู้คืนได้`);
+    if (!confirmDelete) return;
+
+    try {
+      await dataService.deleteStudent(studentId);
+      setShowEditModal(false);
+      router.push('/students'); // redirect to student directory
+    } catch (err) {
+      console.error('Failed to delete student:', err);
+    }
+  };
+
   // Delete Session
   const handleDeleteSession = async (sessionId: string) => {
     if (!student) return;
@@ -826,6 +841,15 @@ export default function StudentDetails({ params }: { params: Promise<{ id: strin
                 className="w-full bg-primary hover:bg-primary/95 text-white py-3.5 rounded-xl font-semibold text-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary/10 mt-2"
               >
                 <Check className="w-4.5 h-4.5" /> บันทึกข้อมูลที่แก้ไข
+              </button>
+
+              {/* Delete Student */}
+              <button
+                type="button"
+                onClick={handleDeleteStudent}
+                className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-3.5 rounded-xl font-semibold text-sm active:scale-98 transition-all flex items-center justify-center gap-1.5 mt-2.5 border border-red-200"
+              >
+                <Trash2 className="w-4 h-4" /> ลบรายชื่อนักเรียนคนนี้ออกจากสตูดิโอ
               </button>
             </form>
           </div>
