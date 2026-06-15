@@ -15,6 +15,83 @@ import {
 } from 'lucide-react';
 import { dataService, Inquiry } from '@/services/data-service';
 
+// Compliant RFC 4180 CSV parser to support commas and quotes inside fields
+function parseCSV(text: string): string[][] {
+  const lines: string[][] = [];
+  let row: string[] = [];
+  let inQuotes = false;
+  let currentField = '';
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"';
+        i++; // skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(currentField.trim());
+      currentField = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i++; // skip LF
+      }
+      row.push(currentField.trim());
+      if (row.some(field => field !== '')) {
+        lines.push(row);
+      }
+      row = [];
+      currentField = '';
+    } else {
+      currentField += char;
+    }
+  }
+  
+  if (currentField !== '' || row.length > 0) {
+    row.push(currentField.trim());
+    if (row.some(field => field !== '')) {
+      lines.push(row);
+    }
+  }
+
+  return lines;
+}
+
+// Convert Google Sheet B.E. or A.D. timestamp into ISO Date string
+function parseDateToISO(timestampStr: string): string {
+  try {
+    const parts = timestampStr.split(' ');
+    const dateParts = parts[0].split('/');
+    if (dateParts.length === 3) {
+      const day = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      let year = parseInt(dateParts[2], 10);
+      
+      if (year > 2400) {
+        year -= 543; // convert B.E. to A.D.
+      }
+      
+      let hour = 12, minute = 0, second = 0;
+      if (parts[1]) {
+        const timeParts = parts[1].split(':');
+        hour = parseInt(timeParts[0], 10) || 12;
+        minute = parseInt(timeParts[1], 10) || 0;
+        second = parseInt(timeParts[2], 10) || 0;
+      }
+      
+      const date = new Date(year, month, day, hour, minute, second);
+      return date.toISOString();
+    }
+    return new Date(timestampStr).toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
 export default function InquiriesPage() {
   const router = useRouter();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -23,10 +100,73 @@ export default function InquiriesPage() {
 
   const loadInquiries = async () => {
     try {
-      const data = await dataService.getInquiries();
-      setInquiries(data);
+      setLoading(true);
+
+      // 1. Fetch current active students to check if already imported
+      const students = await dataService.getStudents();
+      const studentNames = new Set(students.map(s => s.name.trim().toLowerCase()));
+      const studentNicknames = new Set(students.map(s => s.nickname.trim().toLowerCase()));
+
+      // 2. Fetch from Google Sheet "การตอบแบบฟอร์ม 2"
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1Q_q-iLcVm1UrswQNtjeaDXH0ZjibcHloCba4burB7Lo/export?format=csv&sheet=" + encodeURIComponent("การตอบแบบฟอร์ม 2");
+      const res = await fetch(sheetUrl);
+      if (!res.ok) {
+        throw new Error("ไม่สามารถดาวน์โหลดข้อมูลจาก Google Sheet ได้");
+      }
+      const csvText = await res.text();
+
+      // 3. Parse CSV rows
+      const rows = parseCSV(csvText);
+      if (rows.length <= 1) {
+        setInquiries([]);
+        return;
+      }
+
+      // Map rows to Inquiries
+      const parsedInquiries: Inquiry[] = rows.slice(1).map((row, index) => {
+        const timestamp = row[0] || '';
+        const student_name = (row[2] || '').trim();
+        const nickname = (row[3] || '').trim();
+        const parent_name = (row[4] || '').trim();
+        const parent_phone = (row[5] || '').trim();
+        const contact_info = (row[6] || '').trim();
+        const preferred_schedule = (row[7] || '').trim();
+        const notes = (row[8] || '').trim();
+
+        const id = `sheet-inq-${index}-${student_name}`;
+
+        // Check if student with same name or nickname already exists in database
+        const isAlreadyImported = 
+          studentNames.has(student_name.toLowerCase()) || 
+          (nickname && studentNicknames.has(nickname.toLowerCase()));
+
+        return {
+          id,
+          student_name,
+          nickname,
+          parent_name,
+          parent_phone,
+          contact_info,
+          preferred_schedule,
+          notes,
+          created_at: timestamp ? parseDateToISO(timestamp) : new Date().toISOString(),
+          status: isAlreadyImported ? 'imported' : 'pending'
+        } as Inquiry;
+      }).filter(inq => inq.student_name !== '' || inq.nickname !== '');
+
+      // Sort inquiries by newest submission first
+      parsedInquiries.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setInquiries(parsedInquiries);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load inquiries from Google Sheet:", err);
+      // Fallback to local DB inquiries if Google Sheet fetch fails
+      try {
+        const data = await dataService.getInquiries();
+        setInquiries(data);
+      } catch (dbErr) {
+        console.error("Database fallback failed:", dbErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -40,7 +180,6 @@ export default function InquiriesPage() {
   const handleImportStudent = async (inquiry: Inquiry) => {
     try {
       // 1. Create student record
-      // Map preferred schedule to notes
       const initialNotes = `ช่วงเวลาเรียนที่สะดวก: ${inquiry.preferred_schedule}\nบันทึกใบสมัคร: ${inquiry.notes}`;
       
       // Parse potential line ID from contact info
@@ -58,8 +197,8 @@ export default function InquiriesPage() {
       }
 
       await dataService.addStudent({
-        name: inquiry.student_name,
-        nickname: inquiry.nickname || '',
+        name: inquiry.student_name || inquiry.nickname,
+        nickname: inquiry.nickname || inquiry.student_name || '',
         parent_name: inquiry.parent_name || '',
         parent_phone: inquiry.parent_phone || '',
         line_id: parsedLineId,
@@ -71,18 +210,24 @@ export default function InquiriesPage() {
         course_category: 'basic',
       });
 
-      // 2. Update Inquiry status to imported
-      await dataService.updateInquiryStatus(inquiry.id, 'imported');
+      // 2. Update Inquiry status to imported (if it is a database record)
+      if (!inquiry.id.startsWith('sheet-inq-')) {
+        try {
+          await dataService.updateInquiryStatus(inquiry.id, 'imported');
+        } catch (dbErr) {
+          console.error("Failed to update status in DB:", dbErr);
+        }
+      }
 
       // 3. Reload list
       await loadInquiries();
       
       // 4. Alert user & suggest navigation
-      const navigateToStudent = window.confirm(`นำเข้าข้อมูล "${inquiry.student_name} (${inquiry.nickname || 'ไม่มีชื่อเล่น'})" เข้าสู่รายชื่อนักเรียนใหม่เรียบร้อยแล้ว! คุณต้องการเปิดไปดูหน้าโปรไฟล์นักเรียนตอนนี้เลยหรือไม่?`);
+      const navigateToStudent = window.confirm(`นำเข้าข้อมูล "${inquiry.student_name || inquiry.nickname} (${inquiry.nickname || 'ไม่มีชื่อเล่น'})" เข้าสู่รายชื่อนักเรียนใหม่เรียบร้อยแล้ว! คุณต้องการเปิดไปดูหน้าโปรไฟล์นักเรียนตอนนี้เลยหรือไม่?`);
       if (navigateToStudent) {
         // Find the newly created student by name (since nickname/name matches)
         const students = await dataService.getStudents();
-        const created = students.find(s => s.name === inquiry.student_name);
+        const created = students.find(s => s.name === (inquiry.student_name || inquiry.nickname));
         if (created) {
           router.push(`/students/${created.id}`);
         }
@@ -94,6 +239,10 @@ export default function InquiriesPage() {
 
   // Archive Inquiry
   const handleArchiveInquiry = async (id: string) => {
+    if (id.startsWith('sheet-inq-')) {
+      alert('ข้อมูลใบสมัครสมัครนี้ดึงข้อมูลสดมาจาก Google Sheet\n\nหากคุณต้องการลบหรือเก็บถาวร กรุณาเข้าไปลบแถวข้อมูลในไฟล์สเปรดชีต Google Sheet โดยตรงครับ');
+      return;
+    }
     try {
       await dataService.updateInquiryStatus(id, 'archived');
       await loadInquiries();
