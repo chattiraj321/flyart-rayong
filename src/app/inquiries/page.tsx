@@ -11,7 +11,8 @@ import {
   HelpCircle,
   X,
   Phone,
-  MessageSquare
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 import { dataService, Inquiry } from '@/services/data-service';
 
@@ -300,6 +301,49 @@ export default function InquiriesPage() {
           >
             กูเกิลชีต <ExternalLink className="w-3.5 h-3.5" />
           </a>
+        </div>
+
+        {/* Course Templates (PDF) */}
+        <div className="border-t border-[#eae7df]/60 pt-3.5 space-y-2">
+          <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">เทมเพลตแผนการเรียน (PDF)</h4>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <a
+              href="/data/flyart1.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border border-[#eae7df] hover:border-primary/45 hover:bg-primary/5 text-foreground hover:text-primary py-2 px-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs text-center"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-medium">Level 1 (20 ชม.)</span>
+            </a>
+            <a
+              href="/data/flyart2.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border border-[#eae7df] hover:border-primary/45 hover:bg-primary/5 text-foreground hover:text-primary py-2 px-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs text-center"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-medium">Level 2 (40 ชม.)</span>
+            </a>
+            <a
+              href="/data/flyart3.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border border-[#eae7df] hover:border-primary/45 hover:bg-primary/5 text-foreground hover:text-primary py-2 px-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs text-center"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-medium">Level 3 (60 ชม.)</span>
+            </a>
+            <a
+              href="/data/flyart4.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border border-[#eae7df] hover:border-primary/45 hover:bg-primary/5 text-foreground hover:text-primary py-2 px-3 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1.5 transition-all shadow-xs text-center"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-medium">Level 4 (80 ชม.)</span>
+            </a>
+          </div>
         </div>
       </div>
 
